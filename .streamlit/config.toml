@@ -1,7 +1,7 @@
 # Visual do painel: tema claro, padrão de dashboard de BI
 [theme]
 base = "light"
-primaryColor = "#1F4E79"
+primaryColor = "#0077BB"
 backgroundColor = "#FFFFFF"
 secondaryBackgroundColor = "#F3F6F9"
 textColor = "#1F2937"
