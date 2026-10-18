@@ -61,7 +61,7 @@ flowchart LR
 | 1. Coleta (simulada) | `gerar_dados.py` | Parâmetros informados pelo dono + preços de mercado | `dados/ordens_servico_bruto.csv` (2.549 linhas, com erros) |
 | 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.519 linhas) + relatório |
 | 3. Exploração | `analise.ipynb` | Base limpa | Gráficos e 5 conclusões |
-| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores, 13 gráficos, previsão, alertas e insights |
+| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores, 13 gráficos, previsão e insights |
 
 ### Estrutura de pastas
 
@@ -317,8 +317,6 @@ página, em seções.
 │ Gráfico principal: recebidos × entregues    │ Insights                    │ ← tendência +
 │ por mês + previsão tracejada                │ (frases com recomendação)   │   insights
 ├────────────────────────────────────────────┴─────────────────────────────┤
-│ ATENÇÃO AGORA: 🟡 aparelhos em conserto · 🔵 orçamentos recusados        │ ← ação
-├──────────────────────────────────────────────────────────────────────────┤
 │ Serviços e qualidade (6 gráficos) · Financeiro (4) · Clientes (2)         │ ← nível 3: detalhe
 └──────────────────────────────────────────────────────────────────────────┘
 ```
@@ -402,7 +400,6 @@ Os títulos são **calculados**: se o filtro mudar, o título muda junto.
 | Seção | Gráficos | Pergunta que responde |
 |---|---|---|
 | **Topo** | Recebidos × entregues por mês + **previsão** tracejada · "Insights" | O movimento está crescendo? O que vem pela frente? |
-| **Atenção agora** | Alertas de aparelhos em conserto (e quantos aguardam peça) e de orçamentos recusados | O que precisa de atenção hoje? |
 | **Serviços e qualidade** | Defeitos · Retorno por defeito (vermelho = acima da média) · Tempo por reparo (laranja = acima da meta) · **10 modelos mais consertados** · **Dia da semana** · Retorno por técnico | O que mais chega? O que volta? O que demora? Quais peças estocar? Que dia reforçar a equipe? |
 | **Financeiro** | Receita por tipo · **Margem** por tipo (laranja = abaixo da média) · Receita e lucro por mês · **Orçamentos recusados** por tipo | O que dá mais dinheiro? E mais lucro? Onde perdemos orçamentos? |
 | **Clientes** | **Como os clientes novos conheceram a loja** · Clientes novos × que voltaram por mês | Qual canal de divulgação funciona? Os clientes voltam? |
@@ -469,7 +466,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 - **Tudo em português**, com termos do dia a dia da loja (aparelhos, orçamento, garantia).
 - **Números no formato brasileiro:** `R$ 751.943,98` e `8,1%`.
 - **Do geral para o detalhe (layout em F):** 5 números principais grandes, depois uma faixa de
-  apoio, o gráfico principal com os insights ao lado, os alertas e por fim as seções de detalhe.
+  apoio, o gráfico principal com os insights ao lado e por fim as seções de detalhe.
 - **Nada escondido em abas:** tudo aparece rolando a página, em seções com título.
 - **Cartões limpos:** só título e número, sem informação extra.
 - **Títulos que dizem a conclusão** ("Sábado é o dia mais cheio") e subtítulo com a medida.

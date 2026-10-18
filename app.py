@@ -382,18 +382,6 @@ with col_insights.container(border=True):
         st.info(f"São necessárias pelo menos {MINIMO_OS} OS no filtro para gerar insights.")
 
 
-# ---------------- Atenção agora (situação de hoje) ----------------
-
-st.subheader("Atenção agora")
-recusados_periodo = filtrado[filtrado["status"] == "Orçamento recusado"]
-
-a1, a2 = st.columns(2)
-a1.warning(f"**{formatar_numero(em_andamento)} aparelhos em conserto** hoje · "
-           f"{formatar_numero(aguardando_peca)} aguardando peça")
-a2.info(f"**{formatar_numero(len(recusados_periodo))} orçamentos recusados** no período · "
-        f"{formatar_reais_curto(recusados_periodo['valor'].sum())} não fecharam")
-
-
 # ---------------- Seção: Serviços e qualidade ----------------
 
 st.subheader("Serviços e qualidade")
