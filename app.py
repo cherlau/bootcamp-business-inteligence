@@ -17,13 +17,8 @@ st.set_page_config(page_title="Opção Celular · Painel da Assistência", page_
 AZUL = "#0077BB"      # dado principal
 CINZA = "#BBBBBB"     # contexto / demais itens
 LARANJA = "#EE7733"   # atenção
-VERMELHO = "#CC3311"  # problema
-VERDE = "#009988"     # bom
 
 px.defaults.template = "plotly_white"
-
-# Meta de tempo de reparo (ajustar com o Felipe)
-META_TEMPO = 3.0  # dias, no máximo
 
 EM_ANDAMENTO = ["Em andamento", "Aguardando peça"]
 MINIMO_OS = 30       # com poucas OS as conclusões dos insights não fazem sentido
@@ -398,34 +393,6 @@ mostrar(barras(defeitos, "defeito", "aparelhos",
                f"{top_defeito['defeito']} é {top_defeito['texto']} dos defeitos",
                "Aparelhos recebidos por defeito", destaque=[top_defeito["defeito"]],
                texto="texto", eixo_valor="Aparelhos"), c1)
-
-# Taxa de retorno por defeito, com a média
-if len(entregues) > 0:
-    retorno = entregues.groupby("defeito")["retorno_garantia"].apply(lambda s: (s == "Sim").mean() * 100)
-    retorno = retorno.round(1).reset_index(name="taxa")
-    retorno["texto"] = retorno["taxa"].apply(lambda t: formatar_numero(t, 1) + "%")
-    media = atual["taxa_retorno"] * 100
-    acima = retorno[retorno["taxa"] > media]["defeito"]
-    pior = retorno.loc[retorno["taxa"].idxmax()]
-    mostrar(barras(retorno, "defeito", "taxa",
-                   f"{pior['defeito']} volta {formatar_numero(pior['taxa'] / media, 1) if media else '-'}× mais que a média",
-                   "Taxa de retorno na garantia por defeito (%) · vermelho = acima da média",
-                   destaque=acima, cor=VERMELHO, texto="texto", eixo_valor="% de retorno",
-                   linha=media, linha_texto=f"média {formatar_numero(media, 1)}%"), c2)
-
-c1, c2 = st.columns(2)
-
-# Tempo médio de reparo por tipo, com a meta
-tempo_tipo = filtrado.groupby("tipo_reparo")["dias_reparo"].mean().round(1).dropna().reset_index()
-if len(tempo_tipo) > 0:
-    tempo_tipo["texto"] = tempo_tipo["dias_reparo"].apply(lambda d: formatar_numero(d, 1))
-    lento = tempo_tipo.loc[tempo_tipo["dias_reparo"].idxmax()]
-    acima_meta = tempo_tipo[tempo_tipo["dias_reparo"] > META_TEMPO]["tipo_reparo"]
-    mostrar(barras(tempo_tipo, "tipo_reparo", "dias_reparo",
-                   f"{lento['tipo_reparo']} é o mais demorado ({lento['texto']} dias)",
-                   f"Tempo médio de reparo (dias) · laranja = acima da meta de {formatar_numero(META_TEMPO, 0)} dias",
-                   destaque=acima_meta, cor=LARANJA, texto="texto", eixo_valor="Dias",
-                   linha=META_TEMPO, linha_texto="meta"), c1)
 
 # Modelos mais consertados
 modelos = filtrado["modelo"].value_counts().head(10).reset_index()
