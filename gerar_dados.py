@@ -137,12 +137,63 @@ for i in range(n):
 
 df = pd.DataFrame(linhas)
 
-# ---------------- 4. Salva e confere ----------------
+# ---------------- 4. Erros de propósito ----------------
+# "Sujamos" a base para a etapa de limpeza ter o que corrigir.
+
+CHANCE_DATA_BR = 0.10      # datas no formato DD/MM/AAAA
+CHANCE_MARCA_ERRADA = 0.08
+CHANCE_VALOR_TEXTO = 0.10  # valores como "R$ 350,00"
+CHANCE_SEM_TECNICO = 0.03
+QTD_DUPLICADAS = 30
+
+# Jeitos errados de escrever cada marca
+MARCAS_ERRADAS = {
+    "Samsung": ["samsung", "SAMSUNG", "Sansung"],
+    "Apple": ["apple", "iPhone"],
+    "Motorola": ["moto"],
+    "Xiaomi": ["XIAOMI"],
+}
+
+# 1. Algumas datas no formato DD/MM/AAAA
+for coluna in ["data_entrada", "data_conclusao", "data_entrega"]:
+    for i in df.index:
+        data = df.loc[i, coluna]
+        if data != "" and np.random.rand() < CHANCE_DATA_BR:
+            ano, mes, dia = data.split("-")
+            df.loc[i, coluna] = f"{dia}/{mes}/{ano}"
+
+# 2. Algumas marcas escritas diferente
+for i in df.index:
+    if np.random.rand() < CHANCE_MARCA_ERRADA:
+        marca = df.loc[i, "marca"]
+        df.loc[i, "marca"] = np.random.choice(MARCAS_ERRADAS[marca])
+
+# 3. Alguns valores como texto (R$ 350,00)
+df["valor"] = df["valor"].astype(object)
+for i in df.index:
+    if np.random.rand() < CHANCE_VALOR_TEXTO:
+        valor = df.loc[i, "valor"]
+        df.loc[i, "valor"] = f"R$ {valor:.2f}".replace(".", ",")
+
+# 4. Alguns técnicos vazios
+for i in df.index:
+    if np.random.rand() < CHANCE_SEM_TECNICO:
+        df.loc[i, "tecnico"] = ""
+
+# 5. Algumas linhas duplicadas (copiadas e colocadas logo após a original)
+duplicadas = df.sample(QTD_DUPLICADAS, random_state=42)
+df = pd.concat([df, duplicadas]).sort_values("os_id", kind="stable").reset_index(drop=True)
+
+# ---------------- 5. Salva e confere ----------------
 
 df.to_csv("dados/ordens_servico_bruto.csv", sep=";", index=False)
 
-print("Total de OS:", len(df))
+print("Total de linhas:", len(df))
 print("\nOS por status:")
 print(df["status"].value_counts())
 print("\nOS por defeito:")
 print(df["defeito"].value_counts())
+print("\n10 linhas aleatórias:")
+print(df.sample(10, random_state=1).to_string())
+print("\nVariações de marca:")
+print(df["marca"].value_counts())
