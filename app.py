@@ -35,7 +35,8 @@ st.markdown("""
 <style>
 .st-key-principais [data-testid="stMetricValue"] { font-size: 2.1rem; }
 .st-key-secundarios [data-testid="stMetricValue"] { font-size: 1.35rem; }
-[data-testid="stAppHeader"] { display: none; }  /* esconde a barra do topo do Streamlit */
+[data-testid="stHeader"] { display: none; }  /* esconde a barra do topo do Streamlit */
+[data-testid="stMainBlockContainer"] { padding-top: 2rem; }  /* tira o espaço vazio que ela deixava */
 </style>
 """, unsafe_allow_html=True)
 
