@@ -38,8 +38,11 @@ gerada por um script Python com números parecidos com os informados pelo dono: 
 marcas atendidas, defeitos mais comuns, preços e prazos.
 
 - Uma linha por OS, com 12 meses de dados (nov/2025 a out/2026), cerca de 2.500 OS.
-- Colunas: número da OS, datas de entrada, conclusão e entrega, marca, modelo, defeito,
-  tipo de reparo, técnico, status, valor cobrado e se voltou na garantia.
+- Colunas: número da OS, datas de entrada, conclusão e entrega, cliente (código anônimo),
+  como o cliente conheceu a loja, marca, modelo, defeito, tipo de reparo, técnico, status
+  (incluindo orçamento recusado), valor cobrado, custo da peça e se voltou na garantia.
+- Os clientes aparecem só como código (ex.: `CLI-0001`), sem nome, telefone ou CPF, para
+  respeitar a LGPD.
 - A base foi gerada **com erros de propósito**: datas em dois formatos, marcas escritas de jeitos
   diferentes, valores em texto, técnico vazio e linhas duplicadas. Assim, a etapa de limpeza
   dos dados também faz parte do trabalho.
@@ -57,6 +60,11 @@ marcas atendidas, defeitos mais comuns, preços e prazos.
 | Taxa de retorno | OS que voltaram na garantia ÷ OS entregues (por defeito e por técnico) |
 | Receita por tipo de reparo | Soma dos valores das OS entregues, por tipo de reparo |
 | Ticket médio | Receita ÷ aparelhos entregues |
+| Lucro e margem | Receita − custo das peças; lucro ÷ receita |
+| Taxa de aprovação de orçamentos | Orçamentos aprovados ÷ aparelhos recebidos |
+| Clientes que voltaram | OS de clientes que já tinham vindo antes ÷ OS recebidas |
+| Origem dos clientes | Clientes novos por canal (indicação, Instagram, Google etc.) |
+| Previsão de demanda | Aparelhos previstos para os próximos 3 meses |
 
 ## 6. Ferramentas
 

@@ -2,8 +2,8 @@
 
 Solução de Business Intelligence desenvolvida para a **Opção Telefonia Celular**, assistência
 técnica e loja de celulares em **Bauru (SP)**. O painel transforma as ordens de serviço da loja
-em indicadores, gráficos e recomendações que ajudam o dono a decidir onde melhorar: estoque,
-equipe, prazos e qualidade dos reparos.
+em indicadores, gráficos, previsões e recomendações que ajudam o dono a decidir onde melhorar:
+estoque, equipe, preços, divulgação e qualidade dos reparos.
 
 > **Aviso:** os dados usados neste projeto são **simulados** com base em informações passadas
 > pela empresa. Eles não são os dados reais da assistência (veja a [seção 2](#2-problema-e-seleção-dos-dados)).
@@ -58,10 +58,10 @@ flowchart LR
 
 | Etapa | Arquivo | Entrada | Saída |
 |---|---|---|---|
-| 1. Coleta (simulada) | `gerar_dados.py` | Parâmetros informados pelo dono | `dados/ordens_servico_bruto.csv` (2.508 linhas, com erros) |
-| 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.478 linhas) + relatório |
+| 1. Coleta (simulada) | `gerar_dados.py` | Parâmetros informados pelo dono + preços de mercado | `dados/ordens_servico_bruto.csv` (2.549 linhas, com erros) |
+| 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.519 linhas) + relatório |
 | 3. Exploração | `analise.ipynb` | Base limpa | Gráficos e 5 conclusões |
-| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, indicadores, gráficos e insights |
+| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 12 indicadores, 16 gráficos, previsão e insights |
 
 ### Estrutura de pastas
 
@@ -100,27 +100,26 @@ Cada celular que chega para conserto gera uma **ordem de serviço (OS)**. A OS p
 
 ```mermaid
 flowchart LR
-    E[Entrada] --> R[Em andamento]
+    E[Entrada] --> O{Orçamento}
+    O -->|recusado| OR[Orçamento recusado]
+    O -->|aprovado| R[Em andamento]
     R --> P[Aguardando peça]
     P --> R
     R --> PR[Pronto]
     PR --> EN[Entregue]
-    E --> C[Cancelado]
+    R --> C[Cancelado]
     EN -.->|defeito volta em até 90 dias| G[Retorno na garantia]
 ```
 
 ### A necessidade
 
-Em conversa com o dono, identificamos que ele **não tem uma visão clara** do próprio negócio:
+Em conversa com o dono, levantamos os indicadores que ele quer acompanhar: **aparelhos recebidos
+e entregues, serviços em andamento, tempo médio de reparo, taxa de conclusão, defeitos mais
+frequentes, taxa de retorno por problema e receita por tipo de reparo**. Ele também pediu dados
+dos aparelhos (marca e modelo) e dos clientes (se são recorrentes).
 
-- quantos aparelhos entram e saem por mês;
-- quanto tempo cada tipo de reparo leva;
-- quais defeitos são mais comuns;
-- quais consertos voltam na garantia (retrabalho que custa tempo e dinheiro);
-- quais serviços trazem mais receita.
-
-Sem esses números, decisões como "quanto estoque de tela manter", "quando reforçar a equipe" ou
-"qual serviço precisa de atenção" são tomadas no feeling.
+Hoje ele **não tem uma visão clara** desses números. Decisões como "quanto estoque de tela
+manter", "quando reforçar a equipe" ou "onde divulgar a loja" são tomadas no feeling.
 
 ---
 
@@ -136,9 +135,9 @@ melhorar?** A resposta é um painel simples, que ele pode abrir e filtrar sozinh
 ### Por que dados simulados
 
 A empresa não liberou os dados reais das ordens de serviço. Por isso, criamos uma **base simulada
-que imita o comportamento da loja**, usando números passados pelo dono: volume diário, marcas
-atendidas, defeitos mais comuns, faixas de preço e prazos. Assim, o painel fica pronto para
-receber os dados reais no futuro: basta trocar o CSV.
+que imita o comportamento da loja**, usando números passados pelo dono (volume diário, marcas
+atendidas, defeitos mais comuns, preços e prazos) e preços de peças pesquisados em lojas online.
+O painel fica pronto para receber os dados reais no futuro: basta trocar o CSV.
 
 ### Dicionário de dados
 
@@ -150,16 +149,20 @@ Uma linha por OS, 12 meses de dados (01/11/2025 a 17/10/2026), separador `;`.
 | `data_entrada` | Quando o aparelho chegou | `2026-03-10` |
 | `data_conclusao` | Quando o reparo terminou (vazio se não terminou) | `2026-03-12` |
 | `data_entrega` | Quando o cliente retirou (vazio se não retirou) | `2026-03-13` |
+| `cliente_id` | Código anônimo do cliente (sem nome, telefone ou CPF) | `CLI-0001` |
+| `origem_cliente` | Como o cliente conheceu a loja | `Indicação` |
 | `marca` | Samsung, Apple, Motorola ou Xiaomi | `Samsung` |
-| `modelo` | Modelo do aparelho | `Galaxy A54` |
+| `modelo` | Modelo do aparelho (26 modelos) | `Galaxy A54` |
 | `defeito` | Problema relatado | `Tela quebrada` |
 | `tipo_reparo` | Serviço feito | `Troca de tela` |
 | `tecnico` | Quem consertou | `Felipe` |
-| `status` | Em andamento, Aguardando peça, Pronto, Entregue ou Cancelado | `Entregue` |
-| `valor` | Valor cobrado em R$ | `350.00` |
+| `status` | Orçamento recusado, Em andamento, Aguardando peça, Pronto, Entregue ou Cancelado | `Entregue` |
+| `valor` | Valor cobrado (ou orçado, se recusado) em R$ | `350.00` |
+| `custo_peca` | Custo da peça usada em R$ | `175.00` |
 | `retorno_garantia` | Voltou com defeito em até 90 dias? (só para entregues) | `Sim` / `Não` |
 
-Colunas criadas na limpeza: `dias_reparo` (dias entre entrada e conclusão) e `mes` (mês da entrada, ex.: `2026-03`).
+Colunas criadas na limpeza: `dias_reparo` (dias entre entrada e conclusão), `mes` (ex.: `2026-03`),
+`dia_semana` (ex.: `Segunda`) e `lucro` (`valor` − `custo_peca`).
 
 ---
 
@@ -171,43 +174,55 @@ Colunas criadas na limpeza: `dias_reparo` (dias entre entrada e conclusão) e `m
 
 O script usa `numpy` para sortear os dados e `pandas` para montar a tabela.
 `np.random.seed(42)` garante que a base saia **sempre igual**, então qualquer pessoa que rodar o
-script chega nos mesmos números.
-
-Todos os parâmetros ficam **em variáveis no topo do script**. Se o dono passar números
-diferentes, é só ajustar ali.
+script chega nos mesmos números. Todos os parâmetros ficam **em variáveis no topo do script**:
+se o dono passar números diferentes, é só ajustar ali.
 
 | Parâmetro | Valor usado |
 |---|---|
 | Volume | ~8 aparelhos/dia, sem domingos; dezembro e janeiro com 30% a mais |
-| Marcas | Samsung 40% · Apple 30% · Motorola 20% · Xiaomi 10% (3 a 4 modelos cada) |
+| Dia da semana | Segunda (+15%) e sábado (+5%) mais cheios; terça e quarta mais calmas (−10%) |
+| Marcas | Samsung 40% · Apple 30% · Motorola 20% · Xiaomi 10% |
+| Modelos | 26 modelos (5 a 8 por marca); o primeiro da lista de cada marca é o mais comum |
 | Preço Apple | ~50% mais caro que as outras marcas |
 | Técnicos | Felipe e Carlos Eduardo, com a mesma chance de retorno |
 | Espera de peça | 15% das trocas de tela e reparos de placa ganham +3 a 7 dias |
-| Cancelamentos | ~5% das OS (valor 0, sem conclusão) |
+| Aparelhos esquecidos | 4% dos clientes demoram 30 a 150 dias para buscar |
+| Cancelamentos | ~5% das OS aprovadas (valor 0) |
+| Clientes | 25% das OS são de clientes que já vieram antes |
+| Origem dos clientes | Indicação 35% · Instagram 25% · Passou na frente 20% · Google 15% · Outros 5% |
 
-| Defeito | Tipo de reparo | Chance | Preço (R$) | Dias | Chance de retorno |
-|---|---|---|---|---|---|
-| Tela quebrada | Troca de tela | 35% | 250–700 | 1–3 | 5% |
-| Bateria viciada | Troca de bateria | 20% | 120–280 | 1–2 | 4% |
-| Conector de carga | Troca de conector | 15% | 90–190 | 1–2 | 8% |
-| Não liga | Reparo de placa | 10% | 200–600 | 3–8 | 15% |
-| Danos por água | Limpeza de oxidação | 10% | 150–380 | 3–7 | 25% |
-| Software travando | Reinstalação de software | 10% | 60–140 | 0–1 | 10% |
+| Defeito | Tipo de reparo | Chance | Preço (R$) | Dias | Retorno | Custo da peça (% do preço) | Orçamento recusado |
+|---|---|---|---|---|---|---|---|
+| Tela quebrada | Troca de tela | 35% | 250–700 | 1–3 | 5% | 40–60% | 8% |
+| Bateria viciada | Troca de bateria | 20% | 120–280 | 1–2 | 4% | 30–45% | 5% |
+| Conector de carga | Troca de conector | 15% | 90–190 | 1–2 | 8% | 15–30% | 5% |
+| Não liga | Reparo de placa | 10% | 200–600 | 3–8 | 15% | 10–30% | 30% |
+| Danos por água | Limpeza de oxidação | 10% | 150–380 | 3–7 | 25% | 5–15% | 25% |
+| Software travando | Reinstalação de software | 10% | 60–140 | 0–1 | 10% | 0% | 5% |
+
+**Custo da peça:** definido como uma fração do preço cobrado, com base em preços de peças
+paralelas em lojas online. A tela é a peça mais cara (até 60% do preço). Uma placa de conector
+custa de R$ 20 a R$ 50, e software e oxidação quase não usam peça.
 
 **Como o script funciona, passo a passo:**
 
 1. **Datas de entrada:** para cada dia do período (menos domingos), sorteia quantos aparelhos
-   chegaram usando `np.random.poisson(média)`, uma distribuição usada para contagens.
+   chegaram com `np.random.poisson(média × peso do dia da semana)`. A distribuição de Poisson é
+   usada para contagens.
 2. **Sorteios:** marca, modelo, defeito e técnico são sorteados com `np.random.choice`,
-   respeitando as chances da tabela.
-3. **Cada OS:** calcula o preço, os dias de reparo (às vezes com espera de peça) e as datas de
-   conclusão e entrega.
-4. **Status:** compara as datas com o "hoje" da base (17/10/2026). Se o conserto ainda não
-   terminou, a OS fica `Em andamento` ou `Aguardando peça`. Se terminou mas o cliente não
-   retirou, fica `Pronto`. Se já foi retirada, fica `Entregue`.
-5. **Retorno na garantia:** sorteado só para OS entregues, com a chance do defeito.
-6. **Erros de propósito:** a base é "suja" antes de salvar, para simular problemas reais de
-   digitação:
+   respeitando as chances. Os modelos têm pesos decrescentes (o primeiro da lista é o mais comum).
+3. **Clientes:** cada OS tem 25% de chance de ser de um cliente antigo (um código já sorteado).
+   Se for cliente novo, ganha um código novo e uma origem. A origem fica guardada e é a mesma
+   em todas as visitas.
+4. **Cada OS:** calcula o preço, o custo da peça, os dias de reparo (às vezes com espera de
+   peça), os dias até a retirada (às vezes "esquecido") e as datas.
+5. **Status:** primeiro sorteia se o orçamento foi recusado e depois se foi cancelado. Em
+   seguida compara as datas com o "hoje" da base (17/10/2026):
+   - conserto ainda não terminado → `Em andamento` ou `Aguardando peça`;
+   - terminado, mas não retirado → `Pronto`;
+   - retirado → `Entregue`.
+6. **Retorno na garantia:** sorteado só para OS entregues, com a chance do defeito.
+7. **Erros de propósito:** a base é "suja" antes de salvar, para simular problemas reais de digitação:
 
 | Erro inserido | Quantidade | Exemplo |
 |---|---|---|
@@ -228,9 +243,9 @@ relatório no final.
 | `remover_duplicadas` | Remove linhas repetidas | `df.drop_duplicates()` |
 | `corrigir_datas` | Converte as 3 colunas de data | Tenta ler como `AAAA-MM-DD`; o que falhar, tenta como `DD/MM/AAAA` |
 | `padronizar_marcas` | Unifica a escrita das marcas | Tira espaços, passa para minúsculas e aplica um dicionário de correções (`sansung` → Samsung, `iphone` → Apple, `moto` → Motorola) |
-| `converter_valores` | Transforma texto em número | Remove `R$`, troca vírgula por ponto e converte para `float` |
+| `converter_valores` | Transforma texto em número | Remove `R$`, troca vírgula por ponto e converte `valor` e `custo_peca` para `float` |
 | `preencher_tecnico` | Trata técnico vazio | Preenche com `Não informado` (não inventa quem fez o reparo) |
-| `criar_colunas` | Cria colunas úteis para a análise | `dias_reparo` = conclusão − entrada; `mes` = mês da entrada |
+| `criar_colunas` | Cria colunas úteis para a análise | `dias_reparo`, `mes`, `dia_semana` e `lucro` |
 
 A base bruta é lida com `dtype=str` (tudo como texto), para que o pandas não tente adivinhar os
 tipos e cada função trate sua coluna do jeito certo.
@@ -239,18 +254,18 @@ tipos e cada função trate sua coluna do jeito certo.
 
 ```
 === Relatório de limpeza ===
-Linhas na base bruta:          2508
+Linhas na base bruta:          2549
 Duplicadas removidas:          30
-Linhas com data DD/MM/AAAA:    621
-Marcas padronizadas:           209
-Valores em texto convertidos:  244
-Técnicos vazios preenchidos:   71
-Colunas criadas:               dias_reparo, mes
-Linhas na base limpa:          2478
+Linhas com data DD/MM/AAAA:    629
+Marcas padronizadas:           203
+Valores em texto convertidos:  259
+Técnicos vazios preenchidos:   64
+Colunas criadas:               dias_reparo, mes, dia_semana, lucro
+Linhas na base limpa:          2519
 ```
 
-Depois da limpeza: nenhuma duplicada, todas as marcas dentro da lista oficial, coluna `valor`
-numérica e nenhuma data perdida (só ficam vazias as datas que ainda não aconteceram).
+Depois da limpeza: nenhuma duplicada, todas as marcas dentro da lista oficial, `valor` e
+`custo_peca` numéricos e nenhuma data perdida (só ficam vazias as datas que ainda não aconteceram).
 
 ### 3.3 Análise exploratória — `analise.ipynb`
 
@@ -259,13 +274,15 @@ um texto curto explicando o que ele mostra.
 
 | Seção | Pergunta | O que encontramos |
 |---|---|---|
-| 1. Visão geral | Como é a base? | 2.478 OS; 94% entregues, 5% canceladas |
-| 2. Recebidos por mês | Existe época de pico? | Dezembro e janeiro têm ~29% mais entradas |
-| 3. Defeitos | Qual o problema mais comum? | Tela quebrada (35,6% das OS) |
-| 4. Tempo de reparo | Qual serviço demora mais? | Reparo de placa (6,2 dias em média) |
-| 5. Retorno na garantia | O que mais volta? | Danos por água (24% de retorno) |
-| 6. Receita | O que dá mais dinheiro? | Troca de tela (55,9% da receita) |
-| 7. Conclusões | — | 5 descobertas, cada uma com o número que a comprova |
+| 1. Visão geral | Como é a base? | 2.519 OS de 1.912 clientes; 83% entregues, 10% com orçamento recusado |
+| 2. Volume | Existe época de pico? Qual o dia mais cheio? | Dez/jan têm ~38% mais entradas; segunda e sábado são os dias mais cheios |
+| 3. Defeitos e modelos | Qual o problema mais comum? Quais telas estocar? | Tela quebrada (35,9%); Galaxy A54, A14, iPhone 11 lideram |
+| 4. Tempo de reparo | Qual serviço demora mais? | Reparo de placa (5,9 dias em média) |
+| 5. Retorno na garantia | O que mais volta? | Danos por água (27,3% de retorno) |
+| 6. Receita e lucro | O que dá mais dinheiro? E mais lucro? | Troca de tela: 57,9% da receita, mas a menor margem (50%) |
+| 7. Orçamentos | O que o cliente mais recusa? | Placa e oxidação (~27% recusados) |
+| 8. Clientes | Os clientes voltam? Como chegam? | 24% voltam; indicação traz 35% dos novos |
+| 9. Conclusões | — | 5 descobertas, cada uma com o número que a comprova |
 
 ---
 
@@ -279,72 +296,95 @@ Python) e **Plotly** (gráficos interativos, com zoom e valores ao passar o mous
 ### Layout
 
 ```
-┌──────────────┬───────────────────────────────────────────────────────┐
-│  FILTROS     │  Painel da Assistência Técnica                        │
-│              │  ┌─────────┐┌─────────┐┌─────────┐┌─────────┐         │
-│  Período     │  │Recebidos││Entregues││Andamento││Tempo méd│         │
-│  Marca       │  └─────────┘└─────────┘└─────────┘└─────────┘         │
-│  Técnico     │  ┌─────────┐┌─────────┐┌─────────┐┌─────────┐         │
-│              │  │Conclusão││Retorno  ││Receita  ││Ticket   │         │
-│  Nota: dados │  └─────────┘└─────────┘└─────────┘└─────────┘         │
-│  simulados   │  [Visão geral][Serviços][Qualidade][Financeiro][Dados]│
-│              │  gráficos da aba selecionada                          │
-└──────────────┴───────────────────────────────────────────────────────┘
+┌──────────────┬──────────────────────────────────────────────────────────────┐
+│  FILTROS     │  Painel da Assistência Técnica                               │
+│              │  Operação:   Recebidos · Entregues · Em andamento · Tempo    │
+│  Período     │  Qualidade:  Aprovação · Conclusão · Retorno · Clientes      │
+│  Marca       │  Financeiro: Receita · Lucro · Margem · Ticket médio         │
+│  Técnico     │  (cada cartão com seta ▲▼ comparando com o período anterior) │
+│              │                                                              │
+│  Nota: dados │  [Visão geral][Serviços][Qualidade][Financeiro][Clientes]    │
+│  simulados   │  [Dados] → gráficos da aba selecionada                       │
+└──────────────┴──────────────────────────────────────────────────────────────┘
 ```
 
 ### Como o código funciona, bloco a bloco
 
-**1. Carregamento com cache.** A função `carregar_dados()` lê o CSV limpo e converte as datas.
-O decorador `@st.cache_data` guarda o resultado na memória: o Streamlit roda o script inteiro a
-cada clique, mas o arquivo só é lido uma vez.
+**1. Carregamento com cache.** A função `carregar_dados()` lê o CSV limpo, converte as datas e
+marca se cada OS é de um **cliente que voltou** (`cumcount() > 0` por cliente: já tinha outra OS
+antes). O decorador `@st.cache_data` guarda o resultado na memória: o Streamlit roda o script
+inteiro a cada clique, mas o arquivo só é lido uma vez.
 
 **2. Filtros na barra lateral.**
 - **Período** (`st.date_input`): intervalo de datas de entrada.
 - **Marca** e **Técnico** (`st.multiselect`): deixar vazio significa "todos".
 
-O código cria duas tabelas filtradas:
-- `base`: filtrada só por marca e técnico;
-- `filtrado`: `base` + filtro de período pela data de entrada.
+**3. Indicadores e comparação com o período anterior.** A função
+`calcular_indicadores(base, inicio, fim)` calcula todos os indicadores de um período. Ela é chamada
+duas vezes:
+- uma para o **período escolhido**;
+- outra para o **período anterior de mesmo tamanho** (ex.: setembro → 02/08 a 31/08).
 
-Essa separação existe porque alguns indicadores contam por **outra data** (veja abaixo).
+A função `variacao()` compara os dois e gera a setinha do cartão:
+- `+12,3%` para quantidades e valores;
+- `+1,2 p.p.` (pontos percentuais) para taxas;
+- `+0,4 dias` para o tempo.
 
-**3. Indicadores (cartões no topo).** Os 8 indicadores seguem estas regras:
+Em tempo de reparo e taxa de retorno, subir é ruim, então a seta fica vermelha
+(`delta_color="inverse"`). Se não houver dados antes do período (ex.: o ano inteiro), o painel avisa
+que não há comparação.
 
-| Indicador | Cálculo | Tabela usada |
+| Indicador | Cálculo | Data usada |
 |---|---|---|
-| Aparelhos recebidos | Quantidade de OS | `filtrado` (data de entrada no período) |
-| Aparelhos entregues | OS com status `Entregue` e **data de entrega** no período | `base` |
-| Em andamento (hoje) | OS com status `Em andamento` ou `Aguardando peça` | `base` (situação atual, ignora o período) |
-| Tempo médio de reparo | Média de `dias_reparo` | `filtrado` |
-| Taxa de conclusão | (Pronto + Entregue) ÷ (recebidas − em andamento) | `filtrado` |
-| Taxa de retorno | Retornos na garantia ÷ entregues | entregues |
-| Receita total | Soma de `valor` das entregues | entregues |
-| Ticket médio | Receita ÷ entregues | entregues |
+| Aparelhos recebidos | Quantidade de OS | Entrada |
+| Aparelhos entregues | OS com status `Entregue` | Entrega |
+| Em andamento (hoje) | OS `Em andamento` ou `Aguardando peça` | Situação atual |
+| Tempo médio de reparo | Média de `dias_reparo` | Entrada |
+| Orçamentos aprovados | 1 − (orçamentos recusados ÷ recebidos) | Entrada |
+| Taxa de conclusão | (Pronto + Entregue) ÷ (recebidas − recusadas − em andamento) | Entrada |
+| Taxa de retorno | Retornos na garantia ÷ entregues | Entrega |
+| OS de clientes que voltaram | OS de clientes que já tinham vindo antes ÷ recebidas | Entrada |
+| Receita total | Soma de `valor` das entregues | Entrega |
+| Lucro bruto | Soma de `lucro` (receita − custo das peças) das entregues | Entrega |
+| Margem | Lucro ÷ receita | Entrega |
+| Ticket médio | Receita ÷ entregues | Entrega |
 
 A receita conta pela **data de entrega**, porque é quando o cliente paga. Um aparelho que
 entrou em setembro e foi retirado em outubro entra na receita de outubro.
 
-**4. Formatação brasileira.** Três funções pequenas (`formatar_numero`, `formatar_reais`,
-`formatar_percentual`) mostram os números como `R$ 1.234,56` e `12,5%`, em vez do formato
-americano.
+**4. Previsão de demanda (análise preditiva).** A função `prever_demanda()` usa um método
+**sazonal simples**, fácil de explicar:
 
-**5. Abas e gráficos.** Todos os gráficos usam os dados já filtrados, então mudam junto com os filtros.
+```
+previsão do mês = aparelhos no mesmo mês do ano anterior × ritmo recente
+ritmo recente   = média dos últimos 3 meses completos ÷ média de todos os meses completos
+```
 
-| Aba | Gráficos | Pergunta que responde |
+O mês atual fica fora, porque ainda não terminou. O método reaproveita a sazonalidade, como o pico
+de dezembro e janeiro, e ajusta pelo momento atual da loja (ritmo de 0,96 = loja 4% abaixo da média).
+O resultado é a previsão dos próximos 3 meses, desenhada em linha tracejada depois do histórico.
+
+**5. Formatação brasileira.** Funções pequenas (`formatar_numero`, `formatar_reais`,
+`formatar_percentual`, `nome_mes`) mostram os números como `R$ 1.234,56`, `12,5%` e `março/2026`.
+
+**6. Abas e gráficos.**
+
+| Aba | Conteúdo | Pergunta que responde |
 |---|---|---|
-| **Visão geral** | Linha: recebidos × entregues por mês + seção de Insights | O movimento está crescendo? A loja dá conta da demanda? |
-| **Serviços** | Barras: serviços em andamento por status · Barras: tempo médio por tipo de reparo | O que está parado hoje? O que demora mais? |
-| **Qualidade** | Barras: defeitos mais frequentes · Taxa de retorno por defeito e por técnico, com linha tracejada na média | O que mais chega? O que mais volta? |
-| **Financeiro** | Barras: receita por tipo de reparo · Linha: receita por mês | O que dá mais dinheiro? Como a receita varia no ano? |
+| **Visão geral** | Recebidos × entregues por mês · **Previsão dos próximos 3 meses** · Aparelhos por **dia da semana** · Insights | O movimento está crescendo? O que vem pela frente? Que dia reforçar a equipe? |
+| **Serviços** | Em andamento por status · Tempo médio por tipo · **10 modelos mais consertados** (por defeito) · **Aparelhos esquecidos** (tabela + valor a receber) | O que está parado? Quais peças estocar? Quem precisa ser lembrado de buscar o aparelho? |
+| **Qualidade** | Defeitos mais frequentes · Taxa de retorno por defeito e por técnico, com linha tracejada na média | O que mais chega? O que mais volta? |
+| **Financeiro** | **Receita e lucro** por tipo de reparo · **Margem** por tipo · Receita e lucro por mês · **Orçamentos** (recusados, valor não fechado, % recusado por tipo) | O que dá mais dinheiro? O que dá mais lucro? Onde perdemos orçamentos? |
+| **Clientes** | Clientes atendidos e que voltaram · **Como os clientes novos conheceram a loja** · Receita por origem · Clientes novos × que voltaram por mês | Os clientes voltam? Qual canal de divulgação funciona? |
 | **Dados** | Tabela com as OS filtradas + botão **Baixar CSV** | Quero ver ou exportar os registros |
 
-Os dois gráficos de retorno usam a mesma função, `grafico_retorno(coluna, titulo)`, que só muda
-a coluna agrupada (defeito ou técnico).
+**Aparelhos esquecidos:** OS com status `Pronto` há mais de 30 dias (`DIAS_ESQUECIDO`), ordenadas
+pelas mais antigas. Hoje são 14 aparelhos e R$ 4.505,47 a receber.
 
-**6. Visual.** O tema claro, no estilo de dashboard de BI, fica no `.streamlit/config.toml`:
-fundo branco e azul-escuro como cor principal. Os gráficos usam o template `plotly_white` e
-uma paleta em tons de azul (lista `CORES` no topo do `app.py`). Cartões e gráficos ficam dentro
-de containers com borda, criados pela função `mostrar_grafico`.
+**7. Visual.** O tema claro, no estilo de dashboard de BI, fica no `.streamlit/config.toml`:
+fundo branco e azul-escuro como cor principal. Os gráficos usam o template `plotly_white` e a
+paleta `CORES` no topo do `app.py`. Cartões e gráficos ficam dentro de containers com borda,
+criados pela função `mostrar_grafico`.
 
 ---
 
@@ -352,41 +392,43 @@ de containers com borda, criados pela função `mostrar_grafico`.
 
 > *Objetivo: apresentar informações que contribuam para decisões, com análises descritivas, diagnósticas, preditivas ou prescritivas.*
 
-O projeto usa três tipos de análise:
+O projeto cobre os **quatro tipos de análise**:
 
 | Tipo | O que responde | Onde aparece |
 |---|---|---|
-| **Descritiva** | *O que aconteceu?* | Cartões, gráficos de volume, defeitos e receita |
-| **Diagnóstica** | *Por que aconteceu?* | Retorno por defeito e por técnico comparado com a média; tempo por tipo de reparo; efeito da espera de peça |
-| **Prescritiva** | *O que fazer?* | Cada insight termina com uma recomendação (→) |
+| **Descritiva** | *O que aconteceu?* | Cartões, volume por mês e dia da semana, defeitos, receita, clientes |
+| **Diagnóstica** | *Por que aconteceu?* | Comparação com o período anterior; retorno por defeito/técnico vs. média; margem por tipo; recusa por tipo |
+| **Preditiva** | *O que vai acontecer?* | Previsão de aparelhos recebidos nos próximos 3 meses |
+| **Prescritiva** | *O que fazer?* | Cada insight termina com uma recomendação (→); lista de aparelhos esquecidos para ligar |
 
 ### Insights automáticos
 
-No fim da aba **Visão geral**, o painel escreve até 5 frases **calculadas na hora** a partir dos
-dados filtrados. Nenhum número fica fixo no texto: se o dono filtrar só Apple ou só dezembro, as
+No fim da aba **Visão geral**, o painel escreve até 6 frases **calculadas na hora** a partir dos
+dados filtrados. Nenhum número fica fixo no texto: se o dono filtrar só Apple ou só setembro, as
 frases mudam.
 
 | # | O que o código calcula | Exemplo (sem filtro) | Recomendação |
 |---|---|---|---|
-| 1 | Tipo de reparo com maior fatia da receita | Troca de tela = **55,9%** da receita | Manter estoque de peças dos modelos mais comuns |
-| 2 | Defeito com maior taxa de retorno ÷ média geral | Danos por água volta em **24,0%**, **3,0×** a média | Revisar o procedimento ou o prazo de garantia |
-| 3 | Técnico com mais retorno ÷ taxa dos demais | Carlos Eduardo 8,3% · Felipe 7,8% (parecidas) | Os retornos dependem mais do defeito do que de quem conserta |
-| 4 | Mês com mais entradas | Dezembro/2025: **281** aparelhos (média 206) | Reforçar a equipe nessa época |
-| 5 | Tipo de reparo com maior tempo médio | Reparo de placa: **6,2 dias** (média 2,6) | Avisar o cliente do prazo e manter peças em estoque |
+| 1 | Tipo de reparo com maior fatia da receita e a margem dele | Troca de tela = **57,9%** da receita, margem **50,1%** (média 61,2%) | Estocar os modelos mais comuns e negociar a peça com fornecedores |
+| 2 | Defeito com maior taxa de retorno ÷ média geral | Danos por água volta em **27,3%**, **3,4×** a média | Revisar o procedimento ou o prazo de garantia |
+| 3 | Técnico com mais retorno ÷ taxa dos demais | Carlos Eduardo 8,5% · Felipe 7,5% (parecidas) | Os retornos dependem mais do defeito do que de quem conserta |
+| 4 | Tipo de reparo com mais orçamentos recusados | Limpeza de oxidação: **27,8%** recusados; R$ 96.585,33 não fecharam | Revisar o preço ou oferecer parcelamento |
+| 5 | Principal origem dos clientes novos | Indicação trouxe **35,3%** dos clientes novos | Investir no canal (ex.: desconto para quem indica) |
+| 6 | Mês de maior movimento na previsão | Janeiro/2027: **273 aparelhos** (média recente: 209) | Planejar estoque e equipe com antecedência |
 
 Duas regras evitam conclusões erradas:
 - **Mínimo de 30 OS:** com poucos dados, uma única OS vira "100% da receita". Abaixo desse
-  número, o painel mostra um aviso no lugar dos insights.
+  número, os insights 1 a 5 não aparecem.
 - **Técnicos só são apontados se a diferença for grande** (50% a mais que o outro). Diferenças
   pequenas são tratadas como normais, para não culpar ninguém sem motivo.
 
 ### Principais descobertas (dados completos)
 
-1. **Tela quebrada é o carro-chefe:** 35,6% das OS e 55,9% da receita (R$ 454 mil de R$ 813 mil).
-2. **Dezembro e janeiro são o pico:** ~29% mais aparelhos que nos outros meses.
-3. **Danos por água volta muito:** 24,0% de retorno, contra 8,0% na média geral.
-4. **Apple tem o maior ticket:** R$ 465,62 por reparo, ~56% acima das outras marcas, e 41% da receita.
-5. **Reparo de placa é o mais demorado:** 6,2 dias em média, contra 0,4 a 2,8 nos reparos simples.
+1. **Tela quebrada é o carro-chefe, mas com a menor margem:** 57,9% da receita e margem de 50,1%.
+2. **Dezembro e janeiro são o pico:** ~38% mais aparelhos; a previsão repete o pico em dez/2026 e jan/2027.
+3. **Danos por água volta muito:** 27,3% de retorno, contra 8,1% na média geral.
+4. **Placa e oxidação perdem orçamentos:** ~27% recusados; R$ 96,6 mil em orçamentos não fecharam.
+5. **Indicação é o melhor canal:** 35% dos clientes novos, e 24% dos clientes voltam.
 
 ---
 
@@ -396,17 +438,22 @@ Duas regras evitam conclusões erradas:
 
 O público do painel é o **dono da loja**, que não é da área de dados. Por isso:
 
-- **Tudo em português**, com termos do dia a dia da loja (aparelhos, reparo, garantia).
-- **Números no formato brasileiro:** `R$ 813.414,35` e `8,0%`.
-- **Do geral para o detalhe:** primeiro os 8 números principais, depois as abas por assunto,
-  e por fim a tabela com os registros.
-- **Abas por pergunta de negócio** (Serviços, Qualidade, Financeiro), e não por tipo de gráfico.
-- **Títulos que dizem o que o gráfico mostra**, como "Taxa de retorno por defeito".
+- **Tudo em português**, com termos do dia a dia da loja (aparelhos, orçamento, garantia).
+- **Números no formato brasileiro:** `R$ 723.563,74` e `8,1%`.
+- **Do geral para o detalhe:** primeiro os 12 números principais em 3 linhas temáticas (operação,
+  qualidade, financeiro), depois as abas por assunto e por fim a tabela com os registros.
+- **Setas de comparação:** verde quando melhorou, vermelho quando piorou, inclusive nos indicadores
+  em que "subir é ruim", como tempo e retorno.
+- **Abas por pergunta de negócio** (Serviços, Qualidade, Financeiro, Clientes), e não por tipo de gráfico.
+- **Títulos que dizem o que o gráfico mostra** e ícone de ajuda (?) nos indicadores menos óbvios,
+  como lucro bruto.
 - **Linha da média** nos gráficos de retorno, para ver na hora quem está acima.
-- **Filtros simples:** vazio = todos; o período usa o formato de data brasileiro.
+- **Explicação da previsão** logo abaixo do gráfico, em uma frase.
+- **Lista de ação:** os aparelhos esquecidos aparecem com cliente, valor e há quantos dias estão parados.
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
 - **Exportação para CSV** com acentos corretos ao abrir no Excel (`utf-8-sig`).
 - **Visual limpo de BI:** fundo branco, cartões com borda, uma paleta só, sem botões de desenvolvedor.
+- **Privacidade (LGPD):** clientes aparecem só como código (`CLI-0001`), sem nome, telefone ou CPF.
 - **Transparência:** a barra lateral avisa que os dados são simulados.
 
 ---
@@ -415,10 +462,13 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 
 | Desafio | Como resolvemos |
 |---|---|
-| A empresa não liberou os dados reais | Base simulada com os números informados pelo dono, com parâmetros fáceis de ajustar |
+| A empresa não liberou os dados reais | Base simulada com os números informados pelo dono e preços de peças de lojas online, com parâmetros fáceis de ajustar |
 | Tornar a limpeza realista | A base é gerada com erros comuns de digitação, para a limpeza ter o que corrigir |
 | Datas em dois formatos na mesma coluna | Leitura em duas tentativas (`AAAA-MM-DD` e depois `DD/MM/AAAA`) |
-| Indicadores contados pela data certa | Recebidos pela data de entrada; entregues e receita pela data de entrega |
+| Indicadores contados pela data certa | Recebidos pela data de entrada; entregues, receita e lucro pela data de entrega |
+| Comparar períodos de forma justa | Período anterior com o mesmo número de dias, logo antes do escolhido |
+| Previsão que o dono entenda | Método sazonal simples (mesmo mês do ano anterior × ritmo recente), explicado no próprio gráfico |
+| Dados de clientes x privacidade | Clientes anônimos (código), sem nome, telefone ou CPF, mesmo o dono tendo esses dados |
 | Insights que não enganam com poucos dados | Mínimo de 30 OS e limite de diferença para apontar técnicos |
 | Dados simulados com pessoas reais | Os técnicos reais têm a mesma chance de retorno: o painel não inventa diferença de desempenho |
 | Painel mostrando dados antigos | O `@st.cache_data` guarda os dados na memória; ao trocar o CSV, é preciso limpar o cache (menu ⋮ → *Clear cache*) ou reiniciar o painel |
@@ -429,10 +479,12 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 
 - **Dados simulados:** os números refletem as informações do dono, não o histórico real. O
   próximo passo é carregar os dados reais da loja. O painel funciona com qualquer CSV no mesmo formato.
-- **Análise preditiva:** com dados reais, dá para prever a demanda dos próximos meses e
-  planejar o estoque de peças.
-- **Custos:** o painel mostra a receita, mas não o custo das peças. Com essa informação, seria
-  possível calcular o lucro por tipo de reparo.
+- **Previsão com um ano de histórico:** o método sazonal precisa do mesmo mês no ano anterior.
+  Com mais anos de dados, dá para usar modelos mais robustos, como média de vários anos ou regressão.
+- **Custo da peça estimado:** usamos faixas de preço de mercado. Com as notas de compra reais, o
+  lucro por serviço fica exato.
+- **Custos fixos:** o lucro bruto não desconta aluguel, salários e contas. Com esses valores, dá
+  para calcular o lucro líquido e o ponto de equilíbrio.
 
 ---
 
