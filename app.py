@@ -67,14 +67,22 @@ else:
     inicio = fim = periodo[0]
 
 marcas = st.sidebar.multiselect("Marca", sorted(df["marca"].unique()), placeholder="Todas")
+
+# A lista de modelos mostra só os modelos das marcas escolhidas
+opcoes_modelo = df[df["marca"].isin(marcas)] if marcas else df
+modelos_escolhidos = st.sidebar.multiselect(
+    "Modelo", sorted(opcoes_modelo["modelo"].unique()), placeholder="Todos (digite para buscar)"
+)
 tecnicos = st.sidebar.multiselect("Técnico", sorted(df["tecnico"].unique()), placeholder="Todos")
 
 st.sidebar.caption("Dados simulados com base em informações da empresa.")
 
-# Aplica marca e técnico (lista vazia = todos)
+# Aplica marca, modelo e técnico (lista vazia = todos)
 base = df.copy()
 if marcas:
     base = base[base["marca"].isin(marcas)]
+if modelos_escolhidos:
+    base = base[base["modelo"].isin(modelos_escolhidos)]
 if tecnicos:
     base = base[base["tecnico"].isin(tecnicos)]
 
