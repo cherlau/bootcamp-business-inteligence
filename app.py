@@ -225,30 +225,22 @@ def titulo(fig, texto, subtitulo):
 
 
 def barras(dados, categoria, valor, texto_titulo, subtitulo, destaque=(), cor=AZUL,
-           texto=None, horizontal=True, eixo_valor="", linha=None, linha_texto=""):
-    """Barras em cinza com os itens de 'destaque' coloridos (a cor chama atenção só para o que importa)."""
+           texto=None, eixo_valor="", linha=None, linha_texto=""):
+    """Barras horizontais em cinza com os itens de 'destaque' coloridos
+    (a cor chama atenção só para o que importa)."""
     dados = dados.copy()
     dados["grupo"] = dados[categoria].isin(list(destaque)).map({True: "destaque", False: "outros"})
-    if horizontal:
-        fig = px.bar(dados, x=valor, y=categoria, orientation="h", color="grupo", text=texto,
-                     color_discrete_map={"destaque": cor, "outros": CINZA})
-        fig.update_yaxes(title="", categoryorder="total ascending")
-        fig.update_xaxes(title=eixo_valor)
-    else:
-        fig = px.bar(dados, x=categoria, y=valor, color="grupo", text=texto,
-                     color_discrete_map={"destaque": cor, "outros": CINZA})
-        fig.update_xaxes(title="", categoryorder="array", categoryarray=list(dados[categoria]))
-        fig.update_yaxes(title=eixo_valor)
+    fig = px.bar(dados, x=valor, y=categoria, orientation="h", color="grupo", text=texto,
+                 color_discrete_map={"destaque": cor, "outros": CINZA})
+    fig.update_yaxes(title="", categoryorder="total ascending")
+    fig.update_xaxes(title=eixo_valor)
     fig.update_layout(showlegend=False)
     # Rótulos sempre na horizontal e para fora da barra (não ficam cortados nem girados)
     fig.update_traces(textangle=0, textposition="outside", cliponaxis=False)
+    # Linha tracejada opcional (ex.: média)
     if linha is not None:
-        if horizontal:
-            fig.add_vline(x=linha, line_dash="dash", line_color="#555555",
-                          annotation_text=linha_texto, annotation_position="bottom right")
-        else:
-            fig.add_hline(y=linha, line_dash="dash", line_color="#555555",
-                          annotation_text=linha_texto, annotation_position="bottom right")
+        fig.add_vline(x=linha, line_dash="dash", line_color="#555555",
+                      annotation_text=linha_texto, annotation_position="bottom right")
     return titulo(fig, texto_titulo, subtitulo)
 
 
@@ -427,34 +419,6 @@ if len(entregues) > 0:
                    destaque=por_tipo[por_tipo["margem"] < atual["margem"] * 100]["tipo_reparo"], cor=LARANJA,
                    texto="texto_margem", eixo_valor="% de margem",
                    linha=atual["margem"] * 100, linha_texto="média"), c2)
-
-c1, c2 = st.columns(2)
-
-# Receita e lucro por mês (últimos 12 meses, para ver a tendência)
-entregues_base = base[base["status"] == "Entregue"].copy()
-entregues_base["mes_entrega"] = entregues_base["data_entrega"].dt.strftime("%Y-%m")
-fin_mes = entregues_base[entregues_base["mes_entrega"].isin(historico.index)]
-fin_mes = fin_mes.groupby("mes_entrega")[["valor", "lucro"]].sum().reset_index()
-fin_mes = fin_mes.rename(columns={"valor": "Receita", "lucro": "Lucro"})
-if len(fin_mes) > 0:
-    melhor_mes = fin_mes.loc[fin_mes["Receita"].idxmax()]
-    fig = px.line(fin_mes, x="mes_entrega", y=["Receita", "Lucro"], markers=True,
-                  color_discrete_map={"Receita": AZUL, "Lucro": CINZA})
-    fig.update_layout(xaxis_title="", yaxis_title="R$", legend_title="", legend={"orientation": "h", "y": -0.15})
-    mostrar(titulo(fig, f"Melhor mês: {nome_mes(melhor_mes['mes_entrega'])} ({formatar_reais_curto(melhor_mes['Receita'])})",
-                   "Receita e lucro por mês (últimos 12 meses completos)"), c1)
-
-# Orçamentos recusados por tipo
-recusa = filtrado.groupby("tipo_reparo")["status"].apply(lambda s: (s == "Orçamento recusado").mean() * 100)
-recusa = recusa.round(1).reset_index(name="taxa")
-recusa["texto"] = recusa["taxa"].apply(lambda t: formatar_numero(t, 1) + "%")
-media_recusa = (1 - atual["taxa_aprovacao"]) * 100
-mais_recusado = recusa.loc[recusa["taxa"].idxmax()]
-mostrar(barras(recusa, "tipo_reparo", "taxa",
-               f"{mais_recusado['tipo_reparo']}: {mais_recusado['texto']} dos orçamentos recusados",
-               "Orçamentos recusados por tipo de reparo (%) · laranja = acima da média",
-               destaque=recusa[recusa["taxa"] > media_recusa]["tipo_reparo"], cor=LARANJA,
-               texto="texto", eixo_valor="% recusado", linha=media_recusa, linha_texto="média"), c2)
 
 
 # ---------------- Seção: Clientes ----------------
