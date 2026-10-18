@@ -2,6 +2,7 @@
 # Para rodar: streamlit run app.py
 
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 st.set_page_config(page_title="Painel da Assistência", layout="wide")
@@ -130,3 +131,40 @@ linha2[3].metric("Ticket médio", formatar_reais(ticket_medio))
 aba_geral, aba_servicos, aba_qualidade, aba_financeiro, aba_dados = st.tabs(
     ["Visão geral", "Serviços", "Qualidade", "Financeiro", "Dados"]
 )
+
+
+# ---------------- Aba: Visão geral ----------------
+
+with aba_geral:
+    # Recebidos contam pelo mês de entrada; entregues pelo mês de entrega
+    recebidos_mes = filtrado.groupby("mes").size().rename("Recebidos")
+    entregues_mes = entregues.groupby(entregues["data_entrega"].dt.strftime("%Y-%m")).size().rename("Entregues")
+    volume = pd.concat([recebidos_mes, entregues_mes], axis=1).fillna(0).reset_index(names="mes")
+
+    fig = px.line(volume, x="mes", y=["Recebidos", "Entregues"], markers=True,
+                  title="Aparelhos recebidos × entregues por mês")
+    fig.update_layout(xaxis_title="Mês", yaxis_title="Aparelhos", legend_title="")
+    st.plotly_chart(fig, width="stretch")
+
+
+# ---------------- Aba: Serviços ----------------
+
+with aba_servicos:
+    col1, col2 = st.columns(2)
+
+    # Serviços em andamento hoje, por status
+    andamento = base[base["status"].isin(["Em andamento", "Aguardando peça"])]
+    por_status = andamento["status"].value_counts().reset_index()
+    por_status.columns = ["status", "quantidade"]
+    fig = px.bar(por_status, x="status", y="quantidade", text="quantidade",
+                 title="Serviços em andamento por status")
+    fig.update_layout(xaxis_title="", yaxis_title="Aparelhos")
+    col1.plotly_chart(fig, width="stretch")
+
+    # Tempo médio de reparo por tipo de serviço
+    tempo = filtrado.groupby("tipo_reparo")["dias_reparo"].mean().round(1).sort_values().reset_index()
+    tempo["texto"] = tempo["dias_reparo"].apply(lambda d: formatar_numero(d, 1))
+    fig = px.bar(tempo, x="dias_reparo", y="tipo_reparo", orientation="h", text="texto",
+                 title="Tempo médio de reparo por tipo de serviço (dias)")
+    fig.update_layout(xaxis_title="Dias", yaxis_title="")
+    col2.plotly_chart(fig, width="stretch")
