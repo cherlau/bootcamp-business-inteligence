@@ -34,6 +34,22 @@ A análise exploratória está no `analise.ipynb`.
 └── .streamlit/config.toml         # tema visual do painel
 ```
 
+## Fluxo dos dados
+
+```mermaid
+flowchart LR
+    A[(ordens_servico_bruto.csv<br/>base de OS)] --> B[limpar_dados.py<br/>corrige os erros]
+    B -->|ordens_servico_limpo.csv| C[analise.ipynb<br/>análise exploratória]
+    B -->|ordens_servico_limpo.csv| D[app.py<br/>painel Streamlit]
+```
+
+| Etapa | Arquivo | Entrada | Saída |
+|---|---|---|---|
+| 1. Dados | `dados/ordens_servico_bruto.csv` | — | Base de OS com 2.549 linhas, com erros de digitação |
+| 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.519 linhas) + relatório |
+| 3. Exploração | `analise.ipynb` | Base limpa | Gráficos e 5 conclusões |
+| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, indicadores, gráficos, previsão e insights |
+
 ## A empresa e o problema
 
 - **Empresa:** Opção Telefonia Celular, conserto e venda de celulares, em Bauru (SP).
