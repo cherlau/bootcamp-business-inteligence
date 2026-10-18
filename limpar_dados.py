@@ -7,7 +7,6 @@ ARQUIVO_BRUTO = "dados/ordens_servico_bruto.csv"
 ARQUIVO_LIMPO = "dados/ordens_servico_limpo.csv"
 
 COLUNAS_DATA = ["data_entrada", "data_conclusao", "data_entrega"]
-MARCAS_VALIDAS = ["Samsung", "Apple", "Motorola", "Xiaomi", "Realme", "LG", "Asus"]
 
 # Escritas erradas conhecidas → marca certa (comparando em minúsculas)
 CORRECOES_MARCA = {

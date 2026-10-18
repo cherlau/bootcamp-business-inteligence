@@ -167,7 +167,6 @@ def calcular_indicadores(base, inicio, fim):
         "receita": receita,
         "lucro": lucro,
         "margem": dividir(lucro, receita),
-        "ticket_medio": dividir(receita, len(entregues)),
     }
 
 
