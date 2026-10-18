@@ -116,9 +116,9 @@ CHANCE_ESPERAR_PECA = 0.15
 DIAS_PECA = (3, 7)
 DIAS_ATE_RETIRADA = (0, 5)
 
-# Alguns clientes demoram muito para buscar o aparelho ("aparelhos esquecidos")
-CHANCE_ESQUECIDO = 0.04
-DIAS_ESQUECIDO = (30, 150)
+# Alguns clientes demoram muito para buscar o aparelho
+CHANCE_RETIRADA_DEMORADA = 0.04
+DIAS_RETIRADA_DEMORADA = (30, 150)
 
 # Clientes (anônimos: só um código, sem nome, telefone ou CPF)
 CHANCE_CLIENTE_VOLTAR = 0.25  # chance de a OS ser de um cliente que já veio antes
@@ -210,9 +210,9 @@ for i in range(n):
     if esperou_peca:
         dias_reparo += np.random.randint(DIAS_PECA[0], DIAS_PECA[1] + 1)
 
-    # Dias até o cliente buscar (alguns esquecem o aparelho)
-    if np.random.rand() < CHANCE_ESQUECIDO:
-        dias_retirada = np.random.randint(DIAS_ESQUECIDO[0], DIAS_ESQUECIDO[1] + 1)
+    # Dias até o cliente buscar (alguns demoram muito)
+    if np.random.rand() < CHANCE_RETIRADA_DEMORADA:
+        dias_retirada = np.random.randint(DIAS_RETIRADA_DEMORADA[0], DIAS_RETIRADA_DEMORADA[1] + 1)
     else:
         dias_retirada = np.random.randint(DIAS_ATE_RETIRADA[0], DIAS_ATE_RETIRADA[1] + 1)
 

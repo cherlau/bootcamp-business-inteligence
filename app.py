@@ -21,14 +21,10 @@ VERDE = "#009988"     # bom
 
 px.defaults.template = "plotly_white"
 
-# Metas (ajustar com o Felipe)
-META_TEMPO = 3.0        # dias de reparo, no máximo
-META_RETORNO = 0.07     # 7% de retorno na garantia, no máximo
-META_APROVACAO = 0.90   # 90% dos orçamentos aprovados, no mínimo
-META_MARGEM = 0.60      # 60% de margem, no mínimo
+# Meta de tempo de reparo (ajustar com o Felipe)
+META_TEMPO = 3.0  # dias, no máximo
 
 EM_ANDAMENTO = ["Em andamento", "Aguardando peça"]
-DIAS_ESQUECIDO = 30  # aparelho pronto há mais de 30 dias sem o cliente buscar
 MINIMO_OS = 30       # com poucas OS as conclusões dos insights não fazem sentido
 MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
          "agosto", "setembro", "outubro", "novembro", "dezembro"]
@@ -140,7 +136,7 @@ if tecnicos:
 # ---------------- Indicadores ----------------
 
 def calcular_indicadores(base, inicio, fim):
-    """Calcula os indicadores de um período. Usada para o período atual e o anterior."""
+    """Calcula os indicadores do período escolhido."""
     filtrado = base[(base["data_entrada"] >= inicio) & (base["data_entrada"] <= fim)]
     # Entregues contam pela data de entrega (quando o cliente paga)
     entregues = base[
@@ -182,72 +178,25 @@ if len(filtrado) == 0:
     st.warning("Nenhuma ordem de serviço com esses filtros. Tente outro período, marca ou modelo.")
     st.stop()
 
-# Período anterior: mesmo tamanho, logo antes do início escolhido
-duracao = fim - inicio
-fim_anterior = inicio - pd.Timedelta(days=1)
-inicio_anterior = fim_anterior - duracao
-tem_anterior = inicio_anterior >= DATA_MIN
-anterior = calcular_indicadores(base, inicio_anterior, fim_anterior) if tem_anterior else None
-
-
-def variacao(chave, tipo="percentual"):
-    """Texto da setinha do cartão comparando com o período anterior.
-    tipo: 'percentual' (+12,3%), 'pontos' (+1,2 p.p.) ou 'dias' (+0,4 dias)."""
-    if anterior is None or anterior["recebidos"] == 0:
-        return None
-    a, b = atual[chave], anterior[chave]
-    if pd.isna(a) or pd.isna(b):
-        return None
-    if tipo == "pontos":
-        diferenca = (a - b) * 100
-        return ("+" if diferenca >= 0 else "") + formatar_numero(diferenca, 1) + " p.p."
-    if tipo == "dias":
-        diferenca = a - b
-        return ("+" if diferenca >= 0 else "") + formatar_numero(diferenca, 1) + " dias"
-    if b == 0:
-        return None
-    mudanca = (a - b) / b * 100
-    return ("+" if mudanca >= 0 else "") + formatar_numero(mudanca, 1) + "%"
-
-
-def meta(ok, texto):
-    """Linha embaixo do cartão dizendo se a meta foi cumprida."""
-    return ("🟢 " if ok else "🔴 ") + texto
-
-
-def cartao(onde, titulo, valor, delta=None, inverso=False, nota=None, ajuda=None):
-    """Cartão de indicador: número, seta de comparação e uma nota (meta ou detalhe)."""
+def cartao(onde, titulo, valor, ajuda=None):
+    """Cartão de indicador com borda: título e número."""
     with onde.container(border=True):
-        st.metric(titulo, valor, delta, delta_color="inverse" if inverso else "normal", help=ajuda)
-        if nota:
-            st.caption(nota)
+        st.metric(titulo, valor, help=ajuda)
 
 
 # ---------------- Números principais (nível 1) ----------------
 
-if tem_anterior:
-    st.caption(f"Período: **{inicio:%d/%m/%Y} a {fim:%d/%m/%Y}** · setas comparam com "
-               f"{inicio_anterior:%d/%m/%Y} a {fim_anterior:%d/%m/%Y}")
-else:
-    st.caption(f"Período: **{inicio:%d/%m/%Y} a {fim:%d/%m/%Y}** · sem comparação (não há dados antes deste período)")
+st.caption(f"Período: **{inicio:%d/%m/%Y} a {fim:%d/%m/%Y}**")
 
 tempo = atual["tempo_medio"]
 with st.container(key="principais"):
     k = st.columns(5)
-    cartao(k[0], "Receita", formatar_reais_curto(atual["receita"]), variacao("receita"),
-           nota=f"Ticket médio: {formatar_reais(atual['ticket_medio'])}")
-    cartao(k[1], "Lucro bruto", formatar_reais_curto(atual["lucro"]), variacao("lucro"),
-           nota=meta(atual["margem"] >= META_MARGEM,
-                     f"Margem {formatar_percentual(atual['margem'])} (meta ≥ {formatar_percentual(META_MARGEM)})"),
+    cartao(k[0], "Receita", formatar_reais_curto(atual["receita"]))
+    cartao(k[1], "Lucro bruto", formatar_reais_curto(atual["lucro"]),
            ajuda="Receita menos o custo das peças (não inclui aluguel, salários etc.).")
-    cartao(k[2], "Aparelhos recebidos", formatar_numero(atual["recebidos"]), variacao("recebidos"),
-           nota=f"Entregues: {formatar_numero(atual['qtd_entregues'])}")
-    cartao(k[3], "Tempo médio de reparo", formatar_numero(tempo, 1) + " dias" if pd.notna(tempo) else "-",
-           variacao("tempo_medio", "dias"), inverso=True,
-           nota=meta(pd.notna(tempo) and tempo <= META_TEMPO, f"Meta: até {formatar_numero(META_TEMPO, 0)} dias"))
+    cartao(k[2], "Aparelhos recebidos", formatar_numero(atual["recebidos"]))
+    cartao(k[3], "Tempo médio de reparo", formatar_numero(tempo, 1) + " dias" if pd.notna(tempo) else "-")
     cartao(k[4], "Taxa de retorno", formatar_percentual(atual["taxa_retorno"]),
-           variacao("taxa_retorno", "pontos"), inverso=True,
-           nota=meta(atual["taxa_retorno"] <= META_RETORNO, f"Meta: até {formatar_percentual(META_RETORNO)}"),
            ajuda="Aparelhos que voltaram com defeito na garantia ÷ aparelhos entregues.")
 
 # ---------------- Números de apoio (nível 2) ----------------
@@ -259,13 +208,10 @@ with st.container(key="secundarios", border=True):
     s[0].metric("Em andamento (hoje)", formatar_numero(em_andamento),
                 help=f"{formatar_numero(aguardando_peca)} aguardando peça")
     s[1].metric("Taxa de conclusão", formatar_percentual(atual["taxa_conclusao"]),
-                variacao("taxa_conclusao", "pontos"),
                 help="Reparos concluídos ÷ orçamentos aprovados (sem contar os em andamento).")
-    s[2].metric("Orçamentos aprovados", formatar_percentual(atual["taxa_aprovacao"]),
-                variacao("taxa_aprovacao", "pontos"),
-                help=f"Meta: pelo menos {formatar_percentual(META_APROVACAO)}.")
+    s[2].metric("Orçamentos aprovados", formatar_percentual(atual["taxa_aprovacao"]))
     s[3].metric("Clientes que voltaram", formatar_percentual(atual["taxa_voltou"]),
-                variacao("taxa_voltou", "pontos"), help="OS de clientes que já tinham vindo antes.")
+                help="OS de clientes que já tinham vindo antes.")
     s[4].metric("Clientes atendidos", formatar_numero(filtrado["cliente_id"].nunique()))
 
 
@@ -437,38 +383,13 @@ with col_insights.container(border=True):
 # ---------------- Atenção agora (situação de hoje) ----------------
 
 st.subheader("Atenção agora")
-prontos = base[base["status"] == "Pronto"].copy()
-prontos["dias_parado"] = (HOJE - prontos["data_conclusao"]).dt.days
-esquecidos = prontos[prontos["dias_parado"] > DIAS_ESQUECIDO].sort_values("dias_parado", ascending=False)
 recusados_periodo = filtrado[filtrado["status"] == "Orçamento recusado"]
 
-a1, a2, a3 = st.columns(3)
-if len(esquecidos) > 0:
-    a1.error(f"**{len(esquecidos)} aparelhos esquecidos** (prontos há mais de {DIAS_ESQUECIDO} dias) · "
-             f"{formatar_reais(esquecidos['valor'].sum())} a receber")
-else:
-    a1.success("Nenhum aparelho esquecido na loja.")
-a2.warning(f"**{formatar_numero(em_andamento)} aparelhos em conserto** hoje · "
+a1, a2 = st.columns(2)
+a1.warning(f"**{formatar_numero(em_andamento)} aparelhos em conserto** hoje · "
            f"{formatar_numero(aguardando_peca)} aguardando peça")
-a3.info(f"**{formatar_numero(len(recusados_periodo))} orçamentos recusados** no período · "
+a2.info(f"**{formatar_numero(len(recusados_periodo))} orçamentos recusados** no período · "
         f"{formatar_reais_curto(recusados_periodo['valor'].sum())} não fecharam")
-
-if len(esquecidos) > 0:
-    with st.expander(f"Ver os {len(esquecidos)} aparelhos esquecidos (para ligar para o cliente)"):
-        st.dataframe(
-            esquecidos[["os_id", "cliente_id", "modelo", "tipo_reparo", "data_conclusao", "dias_parado", "valor"]],
-            hide_index=True,
-            width="stretch",
-            column_config={
-                "os_id": "OS",
-                "cliente_id": "Cliente",
-                "modelo": "Modelo",
-                "tipo_reparo": "Serviço",
-                "data_conclusao": st.column_config.DateColumn("Pronto desde", format="DD/MM/YYYY"),
-                "dias_parado": "Dias parado",
-                "valor": st.column_config.NumberColumn("Valor (R$)", format="%.2f"),
-            },
-        )
 
 
 # ---------------- Seção: Serviços e qualidade ----------------

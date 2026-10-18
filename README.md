@@ -61,7 +61,7 @@ flowchart LR
 | 1. Coleta (simulada) | `gerar_dados.py` | Parâmetros informados pelo dono + preços de mercado | `dados/ordens_servico_bruto.csv` (2.549 linhas, com erros) |
 | 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.519 linhas) + relatório |
 | 3. Exploração | `analise.ipynb` | Base limpa | Gráficos e 5 conclusões |
-| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores com metas e comparação, 13 gráficos, previsão, alertas e insights |
+| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores, 13 gráficos, previsão, alertas e insights |
 
 ### Estrutura de pastas
 
@@ -188,7 +188,7 @@ se o dono passar números diferentes, é só ajustar ali.
 | Preço premium | Modelos topo de linha (Pro, Ultra, Galaxy S/Note/Z, Edge, Razr, Xiaomi 1x, Poco F...) ~40% mais caros |
 | Técnicos | Felipe e Carlos Eduardo, com a mesma chance de retorno |
 | Espera de peça | 15% das trocas de tela e reparos de placa ganham +3 a 7 dias |
-| Aparelhos esquecidos | 4% dos clientes demoram 30 a 150 dias para buscar |
+| Retirada demorada | 4% dos clientes demoram 30 a 150 dias para buscar o aparelho |
 | Cancelamentos | ~5% das OS aprovadas (valor 0) |
 | Clientes | 25% das OS são de clientes que já vieram antes |
 | Origem dos clientes | Indicação 35% · Instagram 25% · Passou na frente 20% · Google 15% · Outros 5% |
@@ -219,7 +219,7 @@ custa de R$ 20 a R$ 50, e software e oxidação quase não usam peça.
    Se for cliente novo, ganha um código novo e uma origem. A origem fica guardada e é a mesma
    em todas as visitas.
 4. **Cada OS:** calcula o preço (com acréscimo para Apple e modelos premium), o custo da peça, os dias de reparo (às vezes com espera de
-   peça), os dias até a retirada (às vezes "esquecido") e as datas.
+   peça), os dias até a retirada (às vezes bem demorada) e as datas.
 5. **Status:** primeiro sorteia se o orçamento foi recusado e depois se foi cancelado. Em
    seguida compara as datas com o "hoje" da base (17/10/2026):
    - conserto ainda não terminado → `Em andamento` ou `Aguardando peça`;
@@ -310,16 +310,14 @@ página, em seções.
 │ [Período ▼ Últimos 3 meses] [Marca ▼] [Modelo ▼ buscar...] [Técnico ▼]    │ ← filtros no topo
 ├──────────────┬─────────────┬─────────────┬──────────────┬────────────────┤
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs
-│ R$ 192,3 mil │ R$ 117,7 mil│ 631         │ 2,5 dias     │ 8,0%           │   grandes, com
-│ ▲ 3,4%       │ ▲ 2,4%      │ ▲ 2,1%      │ ▼ 0,1 dias   │ ▼ 0,1 p.p.     │   comparação e
-│ Ticket médio │ 🟢 margem   │ Entregues   │ 🟢 meta 3d   │ 🔴 meta 7%     │   meta
+│ R$ 192,3 mil │ R$ 117,7 mil│ 631         │ 2,5 dias     │ 8,0%           │   grandes
 ├──────────────┴─────────────┴─────────────┴──────────────┴────────────────┤
 │ Em andamento · Conclusão · Orçamentos aprovados · Clientes que voltaram   │ ← nível 2: apoio
 ├────────────────────────────────────────────┬─────────────────────────────┤
 │ Gráfico principal: recebidos × entregues    │ O que os dados dizem        │ ← tendência +
 │ por mês + previsão tracejada                │ (insights com recomendação) │   insights
 ├────────────────────────────────────────────┴─────────────────────────────┤
-│ ATENÇÃO AGORA: 🔴 esquecidos · 🟡 em conserto · 🔵 orçamentos recusados    │ ← ação
+│ ATENÇÃO AGORA: 🟡 aparelhos em conserto · 🔵 orçamentos recusados        │ ← ação
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Serviços e qualidade (6 gráficos) · Financeiro (4) · Clientes (2)         │ ← nível 3: detalhe
 │ ▸ Ver as ordens de serviço (tabela e download)                            │
@@ -330,8 +328,7 @@ página, em seções.
 | Princípio da skill | Como foi aplicado |
 |---|---|
 | 3 a 5 KPIs principais em destaque | 5 cartões grandes no topo; os demais ficam numa faixa menor logo abaixo |
-| Todo KPI com comparação ou meta | Setas contra o período anterior + metas (🟢/🔴) de margem, tempo e retorno |
-| Filtros no topo, padrão na visão mais comum | Filtros numa faixa no topo; padrão = **últimos 3 meses**, que já mostra comparação |
+| Filtros no topo, padrão na visão mais comum | Filtros numa faixa no topo; padrão = **últimos 3 meses** |
 | Títulos como insight, não rótulo | "Danos por água volta 3,3× mais que a média" em vez de "Taxa de retorno por defeito" |
 | Cinza como padrão, cor só para destacar | Barras cinza; azul = destaque, laranja = atenção, vermelho = problema |
 | Paleta segura para daltônicos | `#0077BB`, `#EE7733`, `#009988`, `#CC3311` + cinza `#BBBBBB` |
@@ -356,20 +353,9 @@ inteiro a cada clique, mas o arquivo só é lido uma vez.
   saem da seleção sozinhos.
 - Se o filtro não tiver nenhuma OS, o painel avisa e para (`st.stop()`), em vez de mostrar gráficos vazios.
 
-**3. Indicadores e comparação com o período anterior.** A função
-`calcular_indicadores(base, inicio, fim)` calcula todos os indicadores de um período. Ela é chamada
-duas vezes:
-- uma para o **período escolhido**;
-- outra para o **período anterior de mesmo tamanho** (ex.: setembro → 02/08 a 31/08).
-
-A função `variacao()` compara os dois e gera a setinha do cartão:
-- `+12,3%` para quantidades e valores;
-- `+1,2 p.p.` (pontos percentuais) para taxas;
-- `+0,4 dias` para o tempo.
-
-Em tempo de reparo e taxa de retorno, subir é ruim, então a seta fica vermelha
-(`delta_color="inverse"`). Se não houver dados antes do período (ex.: o ano inteiro), o painel avisa
-que não há comparação.
+**3. Indicadores.** A função `calcular_indicadores(base, inicio, fim)` calcula todos os
+indicadores do período escolhido e devolve um dicionário usado pelos cartões. Os cartões mostram
+só o título e o número, sem informação extra, para a leitura ficar rápida.
 
 | Indicador | Cálculo | Data usada |
 |---|---|---|
@@ -404,9 +390,9 @@ O resultado é a previsão dos próximos 3 meses, desenhada em linha tracejada d
 **5. Formatação brasileira.** Funções pequenas (`formatar_numero`, `formatar_reais`,
 `formatar_percentual`, `nome_mes`) mostram os números como `R$ 1.234,56`, `12,5%` e `março/2026`.
 
-**6. Metas.** Ficam em constantes no topo do `app.py` (`META_TEMPO`, `META_RETORNO`,
-`META_APROVACAO`, `META_MARGEM`) e devem ser ajustadas com o Felipe. Cada cartão mostra 🟢 se a meta
-foi cumprida e 🔴 se não foi.
+**6. Meta de tempo.** A constante `META_TEMPO` (3 dias) no topo do `app.py` aparece como linha
+tracejada no gráfico de tempo de reparo. Os reparos acima dela ficam em laranja. Deve ser ajustada
+com o Felipe.
 
 **7. Gráficos com destaque.** Quase todos os gráficos de barras usam uma única função, `barras()`:
 - pinta tudo de cinza e só o que importa em cor (o maior item, o que está acima da média ou da meta);
@@ -418,14 +404,11 @@ Os títulos são **calculados**: se o filtro mudar, o título muda junto.
 | Seção | Gráficos | Pergunta que responde |
 |---|---|---|
 | **Topo** | Recebidos × entregues por mês + **previsão** tracejada · "O que os dados dizem" | O movimento está crescendo? O que vem pela frente? |
-| **Atenção agora** | Alertas de aparelhos **esquecidos**, aparelhos em conserto e orçamentos recusados + lista para ligar ao cliente | O que precisa de ação hoje? |
+| **Atenção agora** | Alertas de aparelhos em conserto (e quantos aguardam peça) e de orçamentos recusados | O que precisa de atenção hoje? |
 | **Serviços e qualidade** | Defeitos · Retorno por defeito (vermelho = acima da média) · Tempo por reparo (laranja = acima da meta) · **10 modelos mais consertados** · **Dia da semana** · Retorno por técnico | O que mais chega? O que volta? O que demora? Quais peças estocar? Que dia reforçar a equipe? |
 | **Financeiro** | Receita por tipo · **Margem** por tipo (laranja = abaixo da média) · Receita e lucro por mês · **Orçamentos recusados** por tipo | O que dá mais dinheiro? E mais lucro? Onde perdemos orçamentos? |
 | **Clientes** | **Como os clientes novos conheceram a loja** · Clientes novos × que voltaram por mês | Qual canal de divulgação funciona? Os clientes voltam? |
 | **Detalhe** | Tabela com as OS filtradas + botão **Baixar CSV** (em um expansor) | Quero ver ou exportar os registros |
-
-**Aparelhos esquecidos:** OS com status `Pronto` há mais de 30 dias (`DIAS_ESQUECIDO`), ordenadas
-pelas mais antigas. Hoje são 14 aparelhos e R$ 4.595,55 a receber.
 
 **8. Visual.** O tema claro fica no `.streamlit/config.toml`: fundo branco e azul `#0077BB` como cor
 principal. As cores ficam em constantes no topo do `app.py` (`AZUL`, `CINZA`, `LARANJA`,
@@ -443,9 +426,9 @@ O projeto cobre os **quatro tipos de análise**:
 | Tipo | O que responde | Onde aparece |
 |---|---|---|
 | **Descritiva** | *O que aconteceu?* | Cartões, volume por mês e dia da semana, defeitos, receita, clientes |
-| **Diagnóstica** | *Por que aconteceu?* | Comparação com o período anterior; retorno por defeito/técnico vs. média; margem por tipo; recusa por tipo |
+| **Diagnóstica** | *Por que aconteceu?* | Retorno por defeito/técnico vs. média; tempo vs. meta; margem por tipo; recusa por tipo |
 | **Preditiva** | *O que vai acontecer?* | Previsão de aparelhos recebidos nos próximos 3 meses |
-| **Prescritiva** | *O que fazer?* | Cada insight termina com uma recomendação (→); lista de aparelhos esquecidos para ligar |
+| **Prescritiva** | *O que fazer?* | Cada insight termina com uma recomendação (→) |
 
 ### Insights automáticos
 
@@ -491,14 +474,11 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 - **Do geral para o detalhe (layout em F):** 5 números principais grandes, depois uma faixa de
   apoio, o gráfico principal com os insights ao lado, os alertas e por fim as seções de detalhe.
 - **Nada escondido em abas:** tudo aparece rolando a página, em seções com título.
-- **Metas visíveis:** 🟢/🔴 embaixo dos cartões de margem, tempo e retorno.
-- **Setas de comparação:** verde quando melhorou, vermelho quando piorou, inclusive nos indicadores
-  em que "subir é ruim", como tempo e retorno.
+- **Cartões limpos:** só título e número, sem informação extra.
 - **Títulos que dizem a conclusão** ("Sábado é o dia mais cheio") e subtítulo com a medida.
 - **Cor só onde importa:** barras cinza, com destaque em azul, laranja ou vermelho; paleta segura para daltônicos.
 - **Linha da média ou da meta** nos gráficos, para ver na hora quem está acima.
 - **Explicação da previsão** logo abaixo do gráfico, em uma frase.
-- **Lista de ação:** os aparelhos esquecidos aparecem com cliente, valor e há quantos dias estão parados.
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
 - **Exportação para CSV** com acentos corretos ao abrir no Excel (`utf-8-sig`).
 - **Visual limpo de BI:** fundo branco, cartões com borda, sem botões de desenvolvedor.
@@ -515,11 +495,10 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 | Tornar a limpeza realista | A base é gerada com erros comuns de digitação, para a limpeza ter o que corrigir |
 | Datas em dois formatos na mesma coluna | Leitura em duas tentativas (`AAAA-MM-DD` e depois `DD/MM/AAAA`) |
 | Indicadores contados pela data certa | Recebidos pela data de entrada; entregues, receita e lucro pela data de entrega |
-| Comparar períodos de forma justa | Período anterior com o mesmo número de dias, logo antes do escolhido |
 | Previsão que o dono entenda | Método sazonal simples (mesmo mês do ano anterior × ritmo recente), explicado no próprio gráfico |
 | Dados de clientes x privacidade | Clientes anônimos (código), sem nome, telefone ou CPF, mesmo o dono tendo esses dados |
 | Insights que não enganam com poucos dados | Mínimo de 30 OS e limite de diferença para apontar técnicos |
-| Painel confuso, com informação escondida em abas | Redesenho com a skill dashboard-designer: layout em F, 5 KPIs principais com metas, títulos como conclusão, cor só para destacar e seções sem abas |
+| Painel confuso, com informação escondida em abas | Redesenho com a skill dashboard-designer: layout em F, 5 KPIs principais, títulos como conclusão, cor só para destacar e seções sem abas |
 | Dados simulados com pessoas reais | Os técnicos reais têm a mesma chance de retorno: o painel não inventa diferença de desempenho |
 | Painel mostrando dados antigos | O `@st.cache_data` guarda os dados na memória; ao trocar o CSV, é preciso limpar o cache (menu ⋮ → *Clear cache*) ou reiniciar o painel |
 
