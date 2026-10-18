@@ -92,7 +92,7 @@ flowchart LR
 | **O que faz** | Assistência técnica (conserto) e venda de celulares |
 | **Onde fica** | Bauru (SP) |
 | **Responsável** | Felipe Campos Guimarães, dono da empresa e técnico |
-| **Equipe técnica** | 2 técnicos: Felipe e Carlos Eduardo |
+| **Equipe técnica** | 2 técnicos: Felipe Campos e Carlos Eduardo |
 
 ### Como a loja funciona
 
@@ -155,7 +155,7 @@ Uma linha por OS, 12 meses de dados (01/11/2025 a 17/10/2026), separador `;`.
 | `modelo` | Modelo do aparelho (173 modelos diferentes) | `Galaxy A54` |
 | `defeito` | Problema relatado | `Tela quebrada` |
 | `tipo_reparo` | Serviço feito | `Troca de tela` |
-| `tecnico` | Quem consertou | `Felipe` |
+| `tecnico` | Quem consertou | `Felipe Campos` |
 | `status` | Orçamento recusado, Em andamento, Aguardando peça, Pronto, Entregue ou Cancelado | `Entregue` |
 | `valor` | Valor cobrado (ou orçado, se recusado) em R$ | `350.00` |
 | `custo_peca` | Custo da peça usada em R$ | `175.00` |
@@ -186,7 +186,7 @@ se o dono passar números diferentes, é só ajustar ali.
 | Popularidade dos modelos | Peso = 1 ÷ posição^0,8: poucos modelos muito comuns (Galaxy A14, iPhone 11, Moto G54) e muitos raros |
 | Preço Apple | ~50% mais caro que as outras marcas |
 | Preço premium | Modelos topo de linha (Pro, Ultra, Galaxy S/Note/Z, Edge, Razr, Xiaomi 1x, Poco F...) ~40% mais caros |
-| Técnicos | Felipe e Carlos Eduardo, com a mesma chance de retorno |
+| Técnicos | Felipe Campos e Carlos Eduardo, com a mesma chance de retorno |
 | Espera de peça | 15% das trocas de tela e reparos de placa ganham +3 a 7 dias |
 | Retirada demorada | 4% dos clientes demoram 30 a 150 dias para buscar o aparelho |
 | Cancelamentos | ~5% das OS aprovadas (valor 0) |

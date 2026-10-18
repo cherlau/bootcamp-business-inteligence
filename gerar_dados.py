@@ -108,7 +108,7 @@ CHANCE_RECUSA = {
     "Reinstalação de software": 0.05,
 }
 
-TECNICOS = ["Felipe", "Carlos Eduardo"]  # Felipe é o dono e também conserta
+TECNICOS = ["Felipe Campos", "Carlos Eduardo"]  # Felipe é o dono e também conserta
 
 # Reparos que às vezes ficam esperando peça
 REPAROS_COM_PECA = ["Troca de tela", "Reparo de placa"]
