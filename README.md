@@ -33,31 +33,30 @@ Pré-requisito: Python 3.10 ou superior.
 
 ```bash
 pip install -r requirements.txt   # instala as bibliotecas
-python gerar_dados.py             # cria dados/ordens_servico_bruto.csv
 python limpar_dados.py            # cria dados/ordens_servico_limpo.csv e mostra o relatório
 streamlit run app.py              # abre o painel em http://localhost:8501
 ```
 
-Os dois CSVs já estão no repositório, então dá para rodar direto o `streamlit run app.py`.
+A base limpa já está no repositório, então dá para rodar direto o `streamlit run app.py`.
 Para ver a análise exploratória, abra o `analise.ipynb` no Jupyter ou no VS Code.
 
 ---
 
 ## Visão geral do sistema
 
-O projeto é um **pipeline de dados** em quatro etapas. Cada etapa é um arquivo e entrega um
-resultado para a próxima:
+O projeto é um **pipeline de dados**: a base bruta de ordens de serviço passa pela limpeza e
+depois alimenta a análise e o painel.
 
 ```mermaid
 flowchart LR
-    A[gerar_dados.py<br/>simula as OS] -->|ordens_servico_bruto.csv| B[limpar_dados.py<br/>corrige os erros]
+    A[(ordens_servico_bruto.csv<br/>base de OS)] --> B[limpar_dados.py<br/>corrige os erros]
     B -->|ordens_servico_limpo.csv| C[analise.ipynb<br/>análise exploratória]
     B -->|ordens_servico_limpo.csv| D[app.py<br/>painel Streamlit]
 ```
 
 | Etapa | Arquivo | Entrada | Saída |
 |---|---|---|---|
-| 1. Coleta (simulada) | `gerar_dados.py` | Parâmetros informados pelo dono + preços de mercado | `dados/ordens_servico_bruto.csv` (2.549 linhas, com erros) |
+| 1. Dados | `dados/ordens_servico_bruto.csv` | — | Base de OS com 2.549 linhas, com erros de digitação |
 | 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.519 linhas) + relatório |
 | 3. Exploração | `analise.ipynb` | Base limpa | Gráficos e 5 conclusões |
 | 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores, 11 gráficos, previsão e insights |
@@ -67,17 +66,14 @@ flowchart LR
 ```
 ├── README.md                  # este documento
 ├── requirements.txt           # bibliotecas usadas
-├── gerar_dados.py             # etapa 1: cria a base simulada
 ├── limpar_dados.py            # etapa 2: limpa a base
 ├── analise.ipynb              # etapa 3: análise exploratória
 ├── app.py                     # etapa 4: painel Streamlit
 ├── .streamlit/config.toml     # tema visual do painel
 ├── assets/logo.jpg            # logo da empresa (topo do painel e ícone da aba)
-├── dados/
-│   ├── ordens_servico_bruto.csv
-│   └── ordens_servico_limpo.csv
-└── docs/
-    └── entrega1.md            # documento da Entrega 1
+└── dados/
+    ├── ordens_servico_bruto.csv   # etapa 1: base de ordens de serviço (com erros)
+    └── ordens_servico_limpo.csv   # base limpa, usada pela análise e pelo painel
 ```
 
 ---
@@ -170,24 +166,22 @@ Colunas criadas na limpeza: `dias_reparo` (dias entre entrada e conclusão), `me
 
 > *Objetivo: pré-processar (limpar, transformar, organizar) e explorar os dados.*
 
-### 3.1 Geração da base — `gerar_dados.py`
+### 3.1 A base de dados — `dados/ordens_servico_bruto.csv`
 
-O script usa `numpy` para sortear os dados e `pandas` para montar a tabela.
-`np.random.seed(42)` garante que a base saia **sempre igual**, então qualquer pessoa que rodar o
-script chega nos mesmos números. Todos os parâmetros ficam **em variáveis no topo do script**:
-se o dono passar números diferentes, é só ajustar ali.
+A base foi simulada uma única vez a partir das informações passadas pelo dono e de preços de
+peças pesquisados em lojas online, e ficou salva no CSV. Estes são os padrões da base:
 
-| Parâmetro | Valor usado |
+| Característica | Valor |
 |---|---|
 | Volume | ~8 aparelhos/dia, sem domingos; dezembro e janeiro com 30% a mais |
-| Dia da semana | Segunda (+15%) e sábado (+5%) mais cheios; terça e quarta mais calmas (−10%) |
+| Dia da semana | Segunda e sábado mais cheios; terça e quarta mais calmas |
 | Marcas | Samsung 37% · Apple 27% · Motorola 19% · Xiaomi 11% · Realme 3% · LG 2% · Asus 1% |
 | Modelos | **173 modelos** vendidos no Brasil entre 2017 e 2024, dos básicos (Galaxy A01, Moto E7, Redmi 9A) aos premium (Galaxy Z Fold5, iPhone 16 Pro) |
-| Popularidade dos modelos | Peso = 1 ÷ posição^0,8: poucos modelos muito comuns (Galaxy A14, iPhone 11, Moto G54) e muitos raros |
+| Popularidade dos modelos | Poucos modelos muito comuns (Galaxy A14, iPhone 11, Moto G54) e muitos raros |
 | Preço Apple | ~50% mais caro que as outras marcas |
 | Preço premium | Modelos topo de linha (Pro, Ultra, Galaxy S/Note/Z, Edge, Razr, Xiaomi 1x, Poco F...) ~40% mais caros |
 | Técnicos | Felipe Campos e Carlos Eduardo, com a mesma chance de retorno |
-| Espera de peça | 15% das trocas de tela e reparos de placa ganham +3 a 7 dias |
+| Espera de peça | 15% das trocas de tela e reparos de placa demoram +3 a 7 dias |
 | Retirada demorada | 4% dos clientes demoram 30 a 150 dias para buscar o aparelho |
 | Cancelamentos | ~5% das OS aprovadas (valor 0) |
 | Clientes | 25% das OS são de clientes que já vieram antes |
@@ -206,29 +200,10 @@ se o dono passar números diferentes, é só ajustar ali.
 paralelas em lojas online. A tela é a peça mais cara (até 60% do preço). Uma placa de conector
 custa de R$ 20 a R$ 50, e software e oxidação quase não usam peça.
 
-**Como o script funciona, passo a passo:**
+**Problemas da base bruta:** como numa planilha preenchida à mão, a base tem erros de digitação,
+que são tratados na etapa de limpeza:
 
-1. **Datas de entrada:** para cada dia do período (menos domingos), sorteia quantos aparelhos
-   chegaram com `np.random.poisson(média × peso do dia da semana)`. A distribuição de Poisson é
-   usada para contagens.
-2. **Sorteios:** marca, modelo, defeito e técnico são sorteados com `np.random.choice`,
-   respeitando as chances. Os modelos de cada marca estão em ordem de popularidade, e o peso de
-   cada um é `1 ÷ posição^0,8`. Assim, o 1º modelo aparece bem mais que o 10º, mas mesmo os
-   modelos raros aparecem algumas vezes, como numa assistência de verdade.
-3. **Clientes:** cada OS tem 25% de chance de ser de um cliente antigo (um código já sorteado).
-   Se for cliente novo, ganha um código novo e uma origem. A origem fica guardada e é a mesma
-   em todas as visitas.
-4. **Cada OS:** calcula o preço (com acréscimo para Apple e modelos premium), o custo da peça, os dias de reparo (às vezes com espera de
-   peça), os dias até a retirada (às vezes bem demorada) e as datas.
-5. **Status:** primeiro sorteia se o orçamento foi recusado e depois se foi cancelado. Em
-   seguida compara as datas com o "hoje" da base (17/10/2026):
-   - conserto ainda não terminado → `Em andamento` ou `Aguardando peça`;
-   - terminado, mas não retirado → `Pronto`;
-   - retirado → `Entregue`.
-6. **Retorno na garantia:** sorteado só para OS entregues, com a chance do defeito.
-7. **Erros de propósito:** a base é "suja" antes de salvar, para simular problemas reais de digitação:
-
-| Erro inserido | Quantidade | Exemplo |
+| Problema | Quantidade | Exemplo |
 |---|---|---|
 | Datas no formato brasileiro | ~10% de cada coluna de data | `03/06/2026` em vez de `2026-06-03` |
 | Marcas escritas errado | ~8% | `samsung`, `SAMSUNG`, `Sansung`, `apple`, `iPhone`, `moto`, `XIAOMI`, `realme`, `lg`, `ASUS` |
@@ -482,7 +457,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 | Desafio | Como resolvemos |
 |---|---|
 | A empresa não liberou os dados reais | Base simulada com os números informados pelo dono e preços de peças de lojas online, com parâmetros fáceis de ajustar |
-| Tornar a limpeza realista | A base é gerada com erros comuns de digitação, para a limpeza ter o que corrigir |
+| Base com erros de digitação | Uma função de limpeza para cada tipo de erro, com relatório do que foi corrigido |
 | Datas em dois formatos na mesma coluna | Leitura em duas tentativas (`AAAA-MM-DD` e depois `DD/MM/AAAA`) |
 | Indicadores contados pela data certa | Recebidos pela data de entrada; entregues, receita e lucro pela data de entrega |
 | Previsão que o dono entenda | Método sazonal simples (mesmo mês do ano anterior × ritmo recente), fácil de explicar na apresentação |
