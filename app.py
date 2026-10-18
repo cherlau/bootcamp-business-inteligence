@@ -6,7 +6,19 @@ import plotly.express as px
 import streamlit as st
 
 st.set_page_config(page_title="Painel da Assistência", layout="wide")
-st.title("📱 Painel da Assistência Técnica")
+st.title("Painel da Assistência Técnica")
+st.caption("Opção Telefonia Celular · Bauru (SP)")
+
+# Visual dos gráficos: fundo branco e tons de azul, como em ferramentas de BI
+CORES = ["#1F4E79", "#4A90C2", "#9CC3E4", "#F2A541", "#6C757D"]
+px.defaults.template = "plotly_white"
+px.defaults.color_discrete_sequence = CORES
+
+
+def mostrar_grafico(fig, onde=st):
+    """Mostra o gráfico dentro de um cartão com borda."""
+    with onde.container(border=True):
+        st.plotly_chart(fig, width="stretch")
 
 
 # ---------------- Carregar os dados ----------------
@@ -113,17 +125,17 @@ ticket_medio = receita / qtd_entregues if qtd_entregues > 0 else 0
 # ---------------- Cartões ----------------
 
 linha1 = st.columns(4)
-linha1[0].metric("Aparelhos recebidos", formatar_numero(recebidos))
-linha1[1].metric("Aparelhos entregues", formatar_numero(qtd_entregues))
-linha1[2].metric("Em andamento (hoje)", formatar_numero(em_andamento))
+linha1[0].metric("Aparelhos recebidos", formatar_numero(recebidos), border=True)
+linha1[1].metric("Aparelhos entregues", formatar_numero(qtd_entregues), border=True)
+linha1[2].metric("Em andamento (hoje)", formatar_numero(em_andamento), border=True)
 linha1[3].metric("Tempo médio de reparo",
-                 formatar_numero(tempo_medio, 1) + " dias" if pd.notna(tempo_medio) else "-")
+                 formatar_numero(tempo_medio, 1) + " dias" if pd.notna(tempo_medio) else "-", border=True)
 
 linha2 = st.columns(4)
-linha2[0].metric("Taxa de conclusão", formatar_percentual(taxa_conclusao))
-linha2[1].metric("Taxa de retorno", formatar_percentual(taxa_retorno))
-linha2[2].metric("Receita total", formatar_reais(receita))
-linha2[3].metric("Ticket médio", formatar_reais(ticket_medio))
+linha2[0].metric("Taxa de conclusão", formatar_percentual(taxa_conclusao), border=True)
+linha2[1].metric("Taxa de retorno", formatar_percentual(taxa_retorno), border=True)
+linha2[2].metric("Receita total", formatar_reais(receita), border=True)
+linha2[3].metric("Ticket médio", formatar_reais(ticket_medio), border=True)
 
 
 # ---------------- Abas ----------------
@@ -144,10 +156,9 @@ with aba_geral:
     fig = px.line(volume, x="mes", y=["Recebidos", "Entregues"], markers=True,
                   title="Aparelhos recebidos × entregues por mês")
     fig.update_layout(xaxis_title="Mês", yaxis_title="Aparelhos", legend_title="")
-    st.plotly_chart(fig, width="stretch")
+    mostrar_grafico(fig)
 
     # ---------- Insights (calculados com os dados filtrados) ----------
-    st.subheader("💡 Insights")
     insights = []
     MINIMO_OS = 30  # com poucas OS as conclusões não fazem sentido
 
@@ -215,11 +226,13 @@ with aba_geral:
                 f"→ avisar o cliente do prazo e manter peças em estoque."
             )
 
-    if insights:
-        for frase in insights:
-            st.markdown("- " + frase)
-    else:
-        st.info(f"São necessárias pelo menos {MINIMO_OS} OS no filtro atual para gerar insights.")
+    with st.container(border=True):
+        st.subheader("Insights")
+        if insights:
+            for frase in insights:
+                st.markdown("- " + frase)
+        else:
+            st.info(f"São necessárias pelo menos {MINIMO_OS} OS no filtro atual para gerar insights.")
 
 
 # ---------------- Aba: Serviços ----------------
@@ -234,7 +247,7 @@ with aba_servicos:
     fig = px.bar(por_status, x="status", y="quantidade", text="quantidade",
                  title="Serviços em andamento por status")
     fig.update_layout(xaxis_title="", yaxis_title="Aparelhos")
-    col1.plotly_chart(fig, width="stretch")
+    mostrar_grafico(fig, col1)
 
     # Tempo médio de reparo por tipo de serviço
     tempo = filtrado.groupby("tipo_reparo")["dias_reparo"].mean().round(1).sort_values().reset_index()
@@ -242,7 +255,7 @@ with aba_servicos:
     fig = px.bar(tempo, x="dias_reparo", y="tipo_reparo", orientation="h", text="texto",
                  title="Tempo médio de reparo por tipo de serviço (dias)")
     fig.update_layout(xaxis_title="Dias", yaxis_title="")
-    col2.plotly_chart(fig, width="stretch")
+    mostrar_grafico(fig, col2)
 
 
 # ---------------- Aba: Qualidade ----------------
@@ -267,11 +280,11 @@ with aba_qualidade:
     fig = px.bar(defeitos, x="quantidade", y="defeito", orientation="h", text="quantidade",
                  title="Defeitos mais frequentes")
     fig.update_layout(xaxis_title="Aparelhos", yaxis_title="")
-    st.plotly_chart(fig, width="stretch")
+    mostrar_grafico(fig)
 
     col1, col2 = st.columns(2)
-    col1.plotly_chart(grafico_retorno("defeito", "Taxa de retorno por defeito"), width="stretch")
-    col2.plotly_chart(grafico_retorno("tecnico", "Taxa de retorno por técnico"), width="stretch")
+    mostrar_grafico(grafico_retorno("defeito", "Taxa de retorno por defeito"), col1)
+    mostrar_grafico(grafico_retorno("tecnico", "Taxa de retorno por técnico"), col2)
 
 
 # ---------------- Aba: Financeiro ----------------
@@ -285,14 +298,14 @@ with aba_financeiro:
     fig = px.bar(receita_tipo, x="valor", y="tipo_reparo", orientation="h", text="texto",
                  title="Receita por tipo de reparo")
     fig.update_layout(xaxis_title="Receita (R$)", yaxis_title="")
-    col1.plotly_chart(fig, width="stretch")
+    mostrar_grafico(fig, col1)
 
     # Receita por mês (pelo mês de entrega)
     receita_mes = entregues.groupby(entregues["data_entrega"].dt.strftime("%Y-%m"))["valor"].sum()
     receita_mes = receita_mes.rename_axis("mes").reset_index()
     fig = px.line(receita_mes, x="mes", y="valor", markers=True, title="Receita por mês")
     fig.update_layout(xaxis_title="Mês", yaxis_title="Receita (R$)")
-    col2.plotly_chart(fig, width="stretch")
+    mostrar_grafico(fig, col2)
 
 
 # ---------------- Aba: Dados ----------------

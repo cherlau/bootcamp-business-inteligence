@@ -1,0 +1,15 @@
+# Visual do painel: tema claro, padrão de dashboard de BI
+[theme]
+base = "light"
+primaryColor = "#1F4E79"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F3F6F9"
+textColor = "#1F2937"
+font = "sans serif"
+
+[theme.sidebar]
+backgroundColor = "#F3F6F9"
+secondaryBackgroundColor = "#FFFFFF"
+
+[client]
+toolbarMode = "viewer"  # esconde o botão "Deploy" e o menu de desenvolvedor
