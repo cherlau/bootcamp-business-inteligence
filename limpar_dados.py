@@ -60,6 +60,7 @@ def converter_valores(df):
         .str.strip()
         .astype(float)
     )
+    df["custo_peca"] = df["custo_peca"].astype(float)  # já vem como número, só muda o tipo
     return df, int(em_texto.sum())
 
 
@@ -71,11 +72,17 @@ def preencher_tecnico(df):
     return df, int(vazios.sum())
 
 
+DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"]
+
+
 def criar_colunas(df):
-    """Cria dias_reparo (conclusão - entrada) e mes (mês da entrada, ex.: 2026-03)."""
+    """Cria colunas úteis para a análise:
+    dias_reparo (conclusão - entrada), mes (ex.: 2026-03), dia_semana e lucro (valor - custo da peça)."""
     df = df.copy()
     df["dias_reparo"] = (df["data_conclusao"] - df["data_entrada"]).dt.days
     df["mes"] = df["data_entrada"].dt.strftime("%Y-%m")
+    df["dia_semana"] = df["data_entrada"].dt.dayofweek.map(lambda d: DIAS_SEMANA[d])
+    df["lucro"] = (df["valor"] - df["custo_peca"]).round(2)
     return df, len(df)
 
 
@@ -104,6 +111,6 @@ if __name__ == "__main__":
     print(f"Marcas padronizadas:           {marcas}")
     print(f"Valores em texto convertidos:  {valores}")
     print(f"Técnicos vazios preenchidos:   {tecnicos}")
-    print("Colunas criadas:               dias_reparo, mes")
+    print("Colunas criadas:               dias_reparo, mes, dia_semana, lucro")
     print(f"Linhas na base limpa:          {len(df)}")
     print(f"\nArquivo salvo em {ARQUIVO_LIMPO}")

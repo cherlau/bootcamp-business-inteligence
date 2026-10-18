@@ -13,14 +13,20 @@ DATA_HOJE = "2026-10-17"  # "data de hoje" da base
 
 MEDIA_POR_DIA = 8         # aparelhos recebidos por dia
 AUMENTO_DEZ_JAN = 1.3     # dezembro e janeiro com 30% a mais
-CHANCE_CANCELADO = 0.05
+CHANCE_CANCELADO = 0.05   # cliente desistiu depois de aprovar
 
-# Marca: (chance, modelos)
+# Peso de cada dia da semana (0 = segunda ... 5 = sábado; domingo fechado).
+# Segunda tem os aparelhos que quebraram no fim de semana; sábado o cliente tem mais tempo.
+PESO_DIA_SEMANA = {0: 1.15, 1: 0.90, 2: 0.90, 3: 1.00, 4: 1.00, 5: 1.05}
+
+# Marca: (chance, modelos do mais comum para o menos comum)
 MARCAS = {
-    "Samsung": (0.40, ["Galaxy A14", "Galaxy A54", "Galaxy S23", "Galaxy M34"]),
-    "Apple": (0.30, ["iPhone 11", "iPhone 12", "iPhone 13", "iPhone 14"]),
-    "Motorola": (0.20, ["Moto G22", "Moto G54", "Moto E13"]),
-    "Xiaomi": (0.10, ["Redmi Note 12", "Redmi 12C", "Poco X5"]),
+    "Samsung": (0.40, ["Galaxy A14", "Galaxy A54", "Galaxy A34", "Galaxy A04", "Galaxy A24",
+                       "Galaxy M34", "Galaxy S23", "Galaxy S21 FE"]),
+    "Apple": (0.30, ["iPhone 11", "iPhone 13", "iPhone 12", "iPhone XR", "iPhone 14",
+                     "iPhone 15", "iPhone SE"]),
+    "Motorola": (0.20, ["Moto G54", "Moto G22", "Moto E13", "Moto G84", "Moto G32", "Edge 40"]),
+    "Xiaomi": (0.10, ["Redmi Note 12", "Redmi 12C", "Redmi Note 13", "Poco X5", "Redmi 13C"]),
 }
 AUMENTO_APPLE = 1.5  # Apple custa ~50% a mais
 
@@ -34,6 +40,28 @@ DEFEITOS = {
     "Software travando": ("Reinstalação de software", 0.10, 60, 140, 0, 1, 0.10),
 }
 
+# Custo da peça como fração do preço cobrado (mín, máx).
+# Referência: preços de peças paralelas em lojas online (tela é a peça mais cara;
+# conector custa R$ 20 a 50; oxidação e software quase não usam peça).
+CUSTO_PECA = {
+    "Troca de tela": (0.40, 0.60),
+    "Troca de bateria": (0.30, 0.45),
+    "Troca de conector": (0.15, 0.30),
+    "Reparo de placa": (0.10, 0.30),
+    "Limpeza de oxidação": (0.05, 0.15),
+    "Reinstalação de software": (0.00, 0.00),
+}
+
+# Chance de o cliente recusar o orçamento (reparos caros e incertos são mais recusados)
+CHANCE_RECUSA = {
+    "Troca de tela": 0.08,
+    "Troca de bateria": 0.05,
+    "Troca de conector": 0.05,
+    "Reparo de placa": 0.30,
+    "Limpeza de oxidação": 0.25,
+    "Reinstalação de software": 0.05,
+}
+
 TECNICOS = ["Felipe", "Carlos Eduardo"]  # Felipe é o dono e também conserta
 
 # Reparos que às vezes ficam esperando peça
@@ -41,6 +69,20 @@ REPAROS_COM_PECA = ["Troca de tela", "Reparo de placa"]
 CHANCE_ESPERAR_PECA = 0.15
 DIAS_PECA = (3, 7)
 DIAS_ATE_RETIRADA = (0, 5)
+
+# Alguns clientes demoram muito para buscar o aparelho ("aparelhos esquecidos")
+CHANCE_ESQUECIDO = 0.04
+DIAS_ESQUECIDO = (30, 150)
+
+# Clientes (anônimos: só um código, sem nome, telefone ou CPF)
+CHANCE_CLIENTE_VOLTAR = 0.25  # chance de a OS ser de um cliente que já veio antes
+ORIGENS = {
+    "Indicação": 0.35,
+    "Instagram": 0.25,
+    "Passou na frente": 0.20,
+    "Google": 0.15,
+    "Outros": 0.05,
+}
 
 # ---------------- 1. Datas de entrada ----------------
 
@@ -50,7 +92,7 @@ dias = dias[dias.dayofweek != 6]  # tira os domingos
 
 datas_entrada = []
 for dia in dias:
-    media = MEDIA_POR_DIA
+    media = MEDIA_POR_DIA * PESO_DIA_SEMANA[dia.dayofweek]
     if dia.month in (12, 1):
         media = media * AUMENTO_DEZ_JAN
     quantidade = np.random.poisson(media)  # número de aparelhos no dia
@@ -58,12 +100,21 @@ for dia in dias:
 
 n = len(datas_entrada)
 
-# ---------------- 2. Sorteio de marca, defeito e técnico ----------------
+# ---------------- 2. Sorteio de marca, modelo, defeito e técnico ----------------
 
 nomes_marcas = list(MARCAS.keys())
 chances_marcas = [MARCAS[m][0] for m in nomes_marcas]
 marcas = np.random.choice(nomes_marcas, size=n, p=chances_marcas)
-modelos = [np.random.choice(MARCAS[m][1]) for m in marcas]
+
+
+def sortear_modelo(marca):
+    """Sorteia um modelo: o primeiro da lista é o mais comum, o último o menos comum."""
+    lista = MARCAS[marca][1]
+    pesos = np.arange(len(lista), 0, -1)  # ex.: 8, 7, 6, ..., 1
+    return np.random.choice(lista, p=pesos / pesos.sum())
+
+
+modelos = [sortear_modelo(m) for m in marcas]
 
 nomes_defeitos = list(DEFEITOS.keys())
 chances_defeitos = [DEFEITOS[d][1] for d in nomes_defeitos]
@@ -71,7 +122,19 @@ defeitos = np.random.choice(nomes_defeitos, size=n, p=chances_defeitos)
 
 tecnicos = np.random.choice(TECNICOS, size=n)
 
-# ---------------- 3. Monta cada OS ----------------
+# ---------------- 3. Clientes ----------------
+
+clientes = []        # cliente de cada OS
+origem_cliente = {}  # como cada cliente conheceu a loja
+for i in range(n):
+    if clientes and np.random.rand() < CHANCE_CLIENTE_VOLTAR:
+        cliente = np.random.choice(list(origem_cliente.keys()))  # cliente antigo voltando
+    else:
+        cliente = f"CLI-{len(origem_cliente) + 1:04d}"  # cliente novo
+        origem_cliente[cliente] = np.random.choice(list(ORIGENS.keys()), p=list(ORIGENS.values()))
+    clientes.append(cliente)
+
+# ---------------- 4. Monta cada OS ----------------
 
 linhas = []
 for i in range(n):
@@ -81,11 +144,12 @@ for i in range(n):
     tecnico = tecnicos[i]
     tipo, _, preco_min, preco_max, dias_min, dias_max, chance_retorno = DEFEITOS[defeito]
 
-    # Preço (Apple mais caro)
+    # Preço (Apple mais caro) e custo da peça
     valor = np.random.uniform(preco_min, preco_max)
     if marca == "Apple":
         valor = valor * AUMENTO_APPLE
     valor = round(valor, 2)
+    custo = round(valor * np.random.uniform(*CUSTO_PECA[tipo]), 2)
 
     # Dias de reparo (+ espera de peça em alguns casos)
     dias_reparo = np.random.randint(dias_min, dias_max + 1)
@@ -93,13 +157,25 @@ for i in range(n):
     if esperou_peca:
         dias_reparo += np.random.randint(DIAS_PECA[0], DIAS_PECA[1] + 1)
 
-    conclusao = entrada + pd.Timedelta(days=dias_reparo)
-    entrega = conclusao + pd.Timedelta(days=np.random.randint(DIAS_ATE_RETIRADA[0], DIAS_ATE_RETIRADA[1] + 1))
+    # Dias até o cliente buscar (alguns esquecem o aparelho)
+    if np.random.rand() < CHANCE_ESQUECIDO:
+        dias_retirada = np.random.randint(DIAS_ESQUECIDO[0], DIAS_ESQUECIDO[1] + 1)
+    else:
+        dias_retirada = np.random.randint(DIAS_ATE_RETIRADA[0], DIAS_ATE_RETIRADA[1] + 1)
 
-    # Status conforme as datas em relação a "hoje"
-    if np.random.rand() < CHANCE_CANCELADO:
+    conclusao = entrada + pd.Timedelta(days=dias_reparo)
+    entrega = conclusao + pd.Timedelta(days=dias_retirada)
+
+    # Status conforme o orçamento e as datas em relação a "hoje"
+    if np.random.rand() < CHANCE_RECUSA[tipo]:
+        status = "Orçamento recusado"  # valor = quanto foi orçado; nenhuma peça usada
+        custo = 0.0
+        conclusao = None
+        entrega = None
+    elif np.random.rand() < CHANCE_CANCELADO:
         status = "Cancelado"
         valor = 0.0
+        custo = 0.0
         conclusao = None
         entrega = None
     elif conclusao > hoje:
@@ -122,6 +198,8 @@ for i in range(n):
         "data_entrada": entrada.strftime("%Y-%m-%d"),
         "data_conclusao": conclusao.strftime("%Y-%m-%d") if conclusao is not None else "",
         "data_entrega": entrega.strftime("%Y-%m-%d") if entrega is not None else "",
+        "cliente_id": clientes[i],
+        "origem_cliente": origem_cliente[clientes[i]],
         "marca": marca,
         "modelo": modelos[i],
         "defeito": defeito,
@@ -129,12 +207,13 @@ for i in range(n):
         "tecnico": tecnico,
         "status": status,
         "valor": valor,
+        "custo_peca": custo,
         "retorno_garantia": retorno,
     })
 
 df = pd.DataFrame(linhas)
 
-# ---------------- 4. Erros de propósito ----------------
+# ---------------- 5. Erros de propósito ----------------
 # "Sujamos" a base para a etapa de limpeza ter o que corrigir.
 
 CHANCE_DATA_BR = 0.10      # datas no formato DD/MM/AAAA
@@ -181,11 +260,12 @@ for i in df.index:
 duplicadas = df.sample(QTD_DUPLICADAS, random_state=42)
 df = pd.concat([df, duplicadas]).sort_values("os_id", kind="stable").reset_index(drop=True)
 
-# ---------------- 5. Salva e confere ----------------
+# ---------------- 6. Salva e confere ----------------
 
 df.to_csv("dados/ordens_servico_bruto.csv", sep=";", index=False)
 
 print("Total de linhas:", len(df))
+print("Clientes diferentes:", df["cliente_id"].nunique())
 print("\nOS por status:")
 print(df["status"].value_counts())
 print("\nOS por defeito:")
