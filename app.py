@@ -168,3 +168,32 @@ with aba_servicos:
                  title="Tempo médio de reparo por tipo de serviço (dias)")
     fig.update_layout(xaxis_title="Dias", yaxis_title="")
     col2.plotly_chart(fig, width="stretch")
+
+
+# ---------------- Aba: Qualidade ----------------
+
+def grafico_retorno(coluna, titulo):
+    """Barras com a taxa de retorno por grupo e uma linha tracejada na média geral."""
+    taxa = entregues.groupby(coluna)["retorno_garantia"].apply(lambda s: (s == "Sim").mean() * 100)
+    taxa = taxa.round(1).sort_values(ascending=False).reset_index(name="taxa")
+    taxa["texto"] = taxa["taxa"].apply(lambda t: formatar_numero(t, 1) + "%")
+
+    fig = px.bar(taxa, x=coluna, y="taxa", text="texto", title=titulo)
+    fig.add_hline(y=taxa_retorno * 100, line_dash="dash", line_color="red",
+                  annotation_text="Média geral: " + formatar_percentual(taxa_retorno))
+    fig.update_layout(xaxis_title="", yaxis_title="% de retorno")
+    return fig
+
+
+with aba_qualidade:
+    # Defeitos mais frequentes
+    defeitos = filtrado["defeito"].value_counts().sort_values().reset_index()
+    defeitos.columns = ["defeito", "quantidade"]
+    fig = px.bar(defeitos, x="quantidade", y="defeito", orientation="h", text="quantidade",
+                 title="Defeitos mais frequentes")
+    fig.update_layout(xaxis_title="Aparelhos", yaxis_title="")
+    st.plotly_chart(fig, width="stretch")
+
+    col1, col2 = st.columns(2)
+    col1.plotly_chart(grafico_retorno("defeito", "Taxa de retorno por defeito"), width="stretch")
+    col2.plotly_chart(grafico_retorno("tecnico", "Taxa de retorno por técnico"), width="stretch")
