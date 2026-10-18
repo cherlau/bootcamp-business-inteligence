@@ -313,7 +313,7 @@ página, em seções.
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs
 │ R$ 55,7 mil  │ R$ 33,8 mil │ 199         │ 2,4 dias     │ 6,8%           │   grandes
 ├──────────────┴─────────────┴─────────────┴──────────────┴────────────────┤
-│ Em andamento · Conclusão · Orçamentos aprovados · Clientes que voltaram   │ ← nível 2: apoio
+│ Em andamento · Conclusão · Aprovados · Clientes que voltaram · Atendidos  │ ← nível 2: apoio
 ├────────────────────────────────────────────┬─────────────────────────────┤
 │ Gráfico principal: recebidos × entregues    │ Insights                    │ ← tendência +
 │ por mês + previsão tracejada                │ (frases com recomendação)   │   insights
@@ -350,23 +350,23 @@ inteiro a cada clique, mas o arquivo só é lido uma vez.
 - Se o filtro não tiver nenhuma OS, o painel avisa e para (`st.stop()`), em vez de mostrar gráficos vazios.
 
 **3. Indicadores.** A função `calcular_indicadores(base, inicio, fim)` calcula todos os
-indicadores do período escolhido e devolve um dicionário usado pelos cartões. Os cartões mostram
-só o título e o número, sem informação extra, para a leitura ficar rápida.
+indicadores do período escolhido e devolve um dicionário usado pelos cartões e gráficos. Os
+cartões mostram só o título e o número, sem informação extra, para a leitura ficar rápida.
 
-| Indicador | Cálculo | Data usada |
-|---|---|---|
-| Aparelhos recebidos | Quantidade de OS | Entrada |
-| Aparelhos entregues | OS com status `Entregue` | Entrega |
-| Em andamento (hoje) | OS `Em andamento` ou `Aguardando peça` | Situação atual |
-| Tempo médio de reparo | Média de `dias_reparo` | Entrada |
-| Orçamentos aprovados | 1 − (orçamentos recusados ÷ recebidos) | Entrada |
-| Taxa de conclusão | (Pronto + Entregue) ÷ (recebidas − recusadas − em andamento) | Entrada |
-| Taxa de retorno | Retornos na garantia ÷ entregues | Entrega |
-| OS de clientes que voltaram | OS de clientes que já tinham vindo antes ÷ recebidas | Entrada |
-| Receita total | Soma de `valor` das entregues | Entrega |
-| Lucro bruto | Soma de `lucro` (receita − custo das peças) das entregues | Entrega |
-| Margem | Lucro ÷ receita | Entrega |
-| Ticket médio | Receita ÷ entregues | Entrega |
+| Indicador | Cálculo | Data usada | Onde aparece |
+|---|---|---|---|
+| Receita | Soma de `valor` das entregues | Entrega | Cartão principal |
+| Lucro bruto | Soma de `lucro` (receita − custo das peças) das entregues | Entrega | Cartão principal |
+| Aparelhos recebidos | Quantidade de OS | Entrada | Cartão principal |
+| Tempo médio de reparo | Média de `dias_reparo` | Entrada | Cartão principal |
+| Taxa de retorno | Retornos na garantia ÷ entregues | Entrega | Cartão principal |
+| Em andamento (hoje) | OS `Em andamento` ou `Aguardando peça` | Situação atual | Faixa de apoio |
+| Taxa de conclusão | (Pronto + Entregue) ÷ (recebidas − recusadas − em andamento) | Entrada | Faixa de apoio |
+| Orçamentos aprovados | 1 − (orçamentos recusados ÷ recebidos) | Entrada | Faixa de apoio |
+| Clientes que voltaram | OS de clientes que já tinham vindo antes ÷ recebidas | Entrada | Faixa de apoio |
+| Clientes atendidos | Clientes diferentes no período | Entrada | Faixa de apoio |
+| Aparelhos entregues | OS com status `Entregue` | Entrega | Gráfico principal (linha cinza) |
+| Margem | Lucro ÷ receita | Entrega | Gráfico de margem (linha da média) e insights |
 
 A receita conta pela **data de entrega**, porque é quando o cliente paga. Um aparelho que
 entrou em setembro e foi retirado em outubro entra na receita de outubro.
@@ -406,8 +406,13 @@ Os títulos são **calculados**: se o filtro mudar, o título muda junto.
 
 **8. Visual.** O tema claro fica no `.streamlit/config.toml`: fundo branco e azul `#0077BB` como cor
 principal. As cores ficam em constantes no topo do `app.py` (`AZUL`, `CINZA`, `LARANJA`,
-`VERMELHO`, `VERDE`). Um pequeno CSS deixa os números dos 5 cartões principais maiores que os da
-faixa de apoio, reforçando a hierarquia.
+`VERMELHO`, `VERDE`). Um pequeno CSS faz duas coisas:
+- deixa os números dos 5 cartões principais maiores que os da faixa de apoio, reforçando a hierarquia;
+- esconde a barra do topo do Streamlit (`stHeader`), para o painel começar direto no logo e no título.
+
+O logo da loja (`assets/logo.jpg`) aparece ao lado do título e como ícone da aba do navegador.
+Os filtros de técnico, marca e modelo não têm a opção "Select all" (`select_all=False`), porque
+deixar o filtro vazio já significa "todos".
 
 ---
 
@@ -420,7 +425,7 @@ O projeto cobre os **quatro tipos de análise**:
 | Tipo | O que responde | Onde aparece |
 |---|---|---|
 | **Descritiva** | *O que aconteceu?* | Cartões, volume por mês, defeitos, modelos, receita, clientes |
-| **Diagnóstica** | *Por que aconteceu?* | Retorno por defeito/técnico vs. média; tempo vs. meta; margem por tipo; recusa por tipo |
+| **Diagnóstica** | *Por que aconteceu?* | Retorno por defeito vs. média; tempo vs. meta; margem por tipo; recusa por tipo |
 | **Preditiva** | *O que vai acontecer?* | Previsão de aparelhos recebidos nos próximos 3 meses |
 | **Prescritiva** | *O que fazer?* | Cada insight termina com uma recomendação (→) |
 
@@ -468,7 +473,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 - **Cor só onde importa:** barras cinza, com destaque em azul, laranja ou vermelho; paleta segura para daltônicos.
 - **Linha da média ou da meta** nos gráficos, para ver na hora quem está acima.
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
-- **Visual limpo de BI:** fundo branco, cartões com borda, sem botões de desenvolvedor.
+- **Visual limpo de BI:** fundo branco, cartões com borda, logo da loja e sem a barra/menu do Streamlit.
 - **Privacidade (LGPD):** clientes aparecem só como código (`CLI-0001`), sem nome, telefone ou CPF.
 
 ---
@@ -486,7 +491,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 | Insights que não enganam com poucos dados | Mínimo de 30 OS para gerar os insights |
 | Painel confuso, com informação escondida em abas | Redesenho com a skill dashboard-designer: layout em F, 5 KPIs principais, títulos como conclusão, cor só para destacar e seções sem abas |
 | Dados simulados com pessoas reais | Os técnicos reais têm a mesma chance de retorno: o painel não inventa diferença de desempenho |
-| Painel mostrando dados antigos | O `@st.cache_data` guarda os dados na memória; ao trocar o CSV, é preciso limpar o cache (menu ⋮ → *Clear cache*) ou reiniciar o painel |
+| Painel mostrando dados antigos | O `@st.cache_data` guarda os dados na memória; ao trocar o CSV, é preciso reiniciar o painel (`Ctrl+C` e `streamlit run app.py` de novo) |
 
 ---
 
