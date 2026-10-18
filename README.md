@@ -151,8 +151,8 @@ Uma linha por OS, 12 meses de dados (01/11/2025 a 17/10/2026), separador `;`.
 | `data_entrega` | Quando o cliente retirou (vazio se não retirou) | `2026-03-13` |
 | `cliente_id` | Código anônimo do cliente (sem nome, telefone ou CPF) | `CLI-0001` |
 | `origem_cliente` | Como o cliente conheceu a loja | `Indicação` |
-| `marca` | Samsung, Apple, Motorola ou Xiaomi | `Samsung` |
-| `modelo` | Modelo do aparelho (26 modelos) | `Galaxy A54` |
+| `marca` | Samsung, Apple, Motorola, Xiaomi, Realme, LG ou Asus | `Samsung` |
+| `modelo` | Modelo do aparelho (173 modelos diferentes) | `Galaxy A54` |
 | `defeito` | Problema relatado | `Tela quebrada` |
 | `tipo_reparo` | Serviço feito | `Troca de tela` |
 | `tecnico` | Quem consertou | `Felipe` |
@@ -181,9 +181,11 @@ se o dono passar números diferentes, é só ajustar ali.
 |---|---|
 | Volume | ~8 aparelhos/dia, sem domingos; dezembro e janeiro com 30% a mais |
 | Dia da semana | Segunda (+15%) e sábado (+5%) mais cheios; terça e quarta mais calmas (−10%) |
-| Marcas | Samsung 40% · Apple 30% · Motorola 20% · Xiaomi 10% |
-| Modelos | 26 modelos (5 a 8 por marca); o primeiro da lista de cada marca é o mais comum |
+| Marcas | Samsung 37% · Apple 27% · Motorola 19% · Xiaomi 11% · Realme 3% · LG 2% · Asus 1% |
+| Modelos | **173 modelos** vendidos no Brasil entre 2017 e 2024, dos básicos (Galaxy A01, Moto E7, Redmi 9A) aos premium (Galaxy Z Fold5, iPhone 16 Pro) |
+| Popularidade dos modelos | Peso = 1 ÷ posição^0,8: poucos modelos muito comuns (Galaxy A14, iPhone 11, Moto G54) e muitos raros |
 | Preço Apple | ~50% mais caro que as outras marcas |
+| Preço premium | Modelos topo de linha (Pro, Ultra, Galaxy S/Note/Z, Edge, Razr, Xiaomi 1x, Poco F...) ~40% mais caros |
 | Técnicos | Felipe e Carlos Eduardo, com a mesma chance de retorno |
 | Espera de peça | 15% das trocas de tela e reparos de placa ganham +3 a 7 dias |
 | Aparelhos esquecidos | 4% dos clientes demoram 30 a 150 dias para buscar |
@@ -210,11 +212,13 @@ custa de R$ 20 a R$ 50, e software e oxidação quase não usam peça.
    chegaram com `np.random.poisson(média × peso do dia da semana)`. A distribuição de Poisson é
    usada para contagens.
 2. **Sorteios:** marca, modelo, defeito e técnico são sorteados com `np.random.choice`,
-   respeitando as chances. Os modelos têm pesos decrescentes (o primeiro da lista é o mais comum).
+   respeitando as chances. Os modelos de cada marca estão em ordem de popularidade, e o peso de
+   cada um é `1 ÷ posição^0,8`. Assim, o 1º modelo aparece bem mais que o 10º, mas mesmo os
+   modelos raros aparecem algumas vezes, como numa assistência de verdade.
 3. **Clientes:** cada OS tem 25% de chance de ser de um cliente antigo (um código já sorteado).
    Se for cliente novo, ganha um código novo e uma origem. A origem fica guardada e é a mesma
    em todas as visitas.
-4. **Cada OS:** calcula o preço, o custo da peça, os dias de reparo (às vezes com espera de
+4. **Cada OS:** calcula o preço (com acréscimo para Apple e modelos premium), o custo da peça, os dias de reparo (às vezes com espera de
    peça), os dias até a retirada (às vezes "esquecido") e as datas.
 5. **Status:** primeiro sorteia se o orçamento foi recusado e depois se foi cancelado. Em
    seguida compara as datas com o "hoje" da base (17/10/2026):
@@ -227,7 +231,7 @@ custa de R$ 20 a R$ 50, e software e oxidação quase não usam peça.
 | Erro inserido | Quantidade | Exemplo |
 |---|---|---|
 | Datas no formato brasileiro | ~10% de cada coluna de data | `03/06/2026` em vez de `2026-06-03` |
-| Marcas escritas errado | ~8% | `samsung`, `SAMSUNG`, `Sansung`, `apple`, `iPhone`, `moto`, `XIAOMI` |
+| Marcas escritas errado | ~8% | `samsung`, `SAMSUNG`, `Sansung`, `apple`, `iPhone`, `moto`, `XIAOMI`, `realme`, `lg`, `ASUS` |
 | Valores como texto | ~10% | `R$ 350,00` em vez de `350.00` |
 | Técnico vazio | ~3% | campo em branco |
 | Linhas duplicadas | 30 | mesma OS digitada duas vezes |
@@ -257,7 +261,7 @@ tipos e cada função trate sua coluna do jeito certo.
 Linhas na base bruta:          2549
 Duplicadas removidas:          30
 Linhas com data DD/MM/AAAA:    629
-Marcas padronizadas:           203
+Marcas padronizadas:           192
 Valores em texto convertidos:  259
 Técnicos vazios preenchidos:   64
 Colunas criadas:               dias_reparo, mes, dia_semana, lucro
@@ -274,15 +278,15 @@ um texto curto explicando o que ele mostra.
 
 | Seção | Pergunta | O que encontramos |
 |---|---|---|
-| 1. Visão geral | Como é a base? | 2.519 OS de 1.912 clientes; 83% entregues, 10% com orçamento recusado |
+| 1. Visão geral | Como é a base? | 2.519 OS de 1.912 clientes, 7 marcas e 173 modelos; 83% entregues, 10% com orçamento recusado |
 | 2. Volume | Existe época de pico? Qual o dia mais cheio? | Dez/jan têm ~38% mais entradas; segunda e sábado são os dias mais cheios |
-| 3. Defeitos e modelos | Qual o problema mais comum? Quais telas estocar? | Tela quebrada (35,9%); Galaxy A54, A14, iPhone 11 lideram |
+| 3. Defeitos e modelos | Qual o problema mais comum? Quais telas estocar? | Tela quebrada (35,9%); iPhone 11, Galaxy A14 e Moto G54 lideram as telas quebradas |
 | 4. Tempo de reparo | Qual serviço demora mais? | Reparo de placa (5,9 dias em média) |
 | 5. Retorno na garantia | O que mais volta? | Danos por água (27,3% de retorno) |
-| 6. Receita e lucro | O que dá mais dinheiro? E mais lucro? | Troca de tela: 57,9% da receita, mas a menor margem (50%) |
+| 6. Receita e lucro | O que dá mais dinheiro? E mais lucro? | Troca de tela: 58,0% da receita, mas a menor margem (50%) |
 | 7. Orçamentos | O que o cliente mais recusa? | Placa e oxidação (~27% recusados) |
 | 8. Clientes | Os clientes voltam? Como chegam? | 24% voltam; indicação traz 35% dos novos |
-| 9. Conclusões | — | 5 descobertas, cada uma com o número que a comprova |
+| 9. Conclusões | — | 5 descobertas **calculadas pelo código** (se os dados mudarem, o texto muda junto) |
 
 ---
 
@@ -301,8 +305,8 @@ Python) e **Plotly** (gráficos interativos, com zoom e valores ao passar o mous
 │              │  Operação:   Recebidos · Entregues · Em andamento · Tempo    │
 │  Período     │  Qualidade:  Aprovação · Conclusão · Retorno · Clientes      │
 │  Marca       │  Financeiro: Receita · Lucro · Margem · Ticket médio         │
-│  Técnico     │  (cada cartão com seta ▲▼ comparando com o período anterior) │
-│              │                                                              │
+│  Modelo      │  (cada cartão com seta ▲▼ comparando com o período anterior) │
+│  Técnico     │                                                              │
 │  Nota: dados │  [Visão geral][Serviços][Qualidade][Financeiro][Clientes]    │
 │  simulados   │  [Dados] → gráficos da aba selecionada                       │
 └──────────────┴──────────────────────────────────────────────────────────────┘
@@ -317,7 +321,10 @@ inteiro a cada clique, mas o arquivo só é lido uma vez.
 
 **2. Filtros na barra lateral.**
 - **Período** (`st.date_input`): intervalo de datas de entrada.
-- **Marca** e **Técnico** (`st.multiselect`): deixar vazio significa "todos".
+- **Marca**, **Modelo** e **Técnico** (`st.multiselect`): deixar vazio significa "todos".
+- A lista de **modelos depende da marca**: escolhendo Apple, só aparecem os 31 iPhones. Dá para
+  digitar para buscar entre os 173 modelos. Se a marca mudar, os modelos que não pertencem a ela
+  saem da seleção sozinhos.
 
 **3. Indicadores e comparação com o período anterior.** A função
 `calcular_indicadores(base, inicio, fim)` calcula todos os indicadores de um período. Ela é chamada
@@ -379,7 +386,7 @@ O resultado é a previsão dos próximos 3 meses, desenhada em linha tracejada d
 | **Dados** | Tabela com as OS filtradas + botão **Baixar CSV** | Quero ver ou exportar os registros |
 
 **Aparelhos esquecidos:** OS com status `Pronto` há mais de 30 dias (`DIAS_ESQUECIDO`), ordenadas
-pelas mais antigas. Hoje são 14 aparelhos e R$ 4.505,47 a receber.
+pelas mais antigas. Hoje são 14 aparelhos e R$ 4.595,55 a receber.
 
 **7. Visual.** O tema claro, no estilo de dashboard de BI, fica no `.streamlit/config.toml`:
 fundo branco e azul-escuro como cor principal. Os gráficos usam o template `plotly_white` e a
@@ -409,10 +416,10 @@ frases mudam.
 
 | # | O que o código calcula | Exemplo (sem filtro) | Recomendação |
 |---|---|---|---|
-| 1 | Tipo de reparo com maior fatia da receita e a margem dele | Troca de tela = **57,9%** da receita, margem **50,1%** (média 61,2%) | Estocar os modelos mais comuns e negociar a peça com fornecedores |
+| 1 | Tipo de reparo com maior fatia da receita e a margem dele | Troca de tela = **58,0%** da receita, margem **50,1%** (média 61,2%) | Estocar os modelos mais comuns e negociar a peça com fornecedores |
 | 2 | Defeito com maior taxa de retorno ÷ média geral | Danos por água volta em **27,3%**, **3,4×** a média | Revisar o procedimento ou o prazo de garantia |
-| 3 | Técnico com mais retorno ÷ taxa dos demais | Carlos Eduardo 8,5% · Felipe 7,5% (parecidas) | Os retornos dependem mais do defeito do que de quem conserta |
-| 4 | Tipo de reparo com mais orçamentos recusados | Limpeza de oxidação: **27,8%** recusados; R$ 96.585,33 não fecharam | Revisar o preço ou oferecer parcelamento |
+| 3 | Técnico com mais retorno ÷ taxa dos demais | Carlos Eduardo 8,5% · Felipe 7,4% (parecidas) | Os retornos dependem mais do defeito do que de quem conserta |
+| 4 | Tipo de reparo com mais orçamentos recusados | Limpeza de oxidação: **27,8%** recusados; R$ 99.589,03 não fecharam | Revisar o preço ou oferecer parcelamento |
 | 5 | Principal origem dos clientes novos | Indicação trouxe **35,3%** dos clientes novos | Investir no canal (ex.: desconto para quem indica) |
 | 6 | Mês de maior movimento na previsão | Janeiro/2027: **273 aparelhos** (média recente: 209) | Planejar estoque e equipe com antecedência |
 
@@ -424,10 +431,10 @@ Duas regras evitam conclusões erradas:
 
 ### Principais descobertas (dados completos)
 
-1. **Tela quebrada é o carro-chefe, mas com a menor margem:** 57,9% da receita e margem de 50,1%.
+1. **Tela quebrada é o carro-chefe, mas com a menor margem:** 58,0% da receita e margem de 50,1%.
 2. **Dezembro e janeiro são o pico:** ~38% mais aparelhos; a previsão repete o pico em dez/2026 e jan/2027.
 3. **Danos por água volta muito:** 27,3% de retorno, contra 8,1% na média geral.
-4. **Placa e oxidação perdem orçamentos:** ~27% recusados; R$ 96,6 mil em orçamentos não fecharam.
+4. **Placa e oxidação perdem orçamentos:** ~27% recusados; R$ 99,6 mil em orçamentos não fecharam.
 5. **Indicação é o melhor canal:** 35% dos clientes novos, e 24% dos clientes voltam.
 
 ---
@@ -439,7 +446,7 @@ Duas regras evitam conclusões erradas:
 O público do painel é o **dono da loja**, que não é da área de dados. Por isso:
 
 - **Tudo em português**, com termos do dia a dia da loja (aparelhos, orçamento, garantia).
-- **Números no formato brasileiro:** `R$ 723.563,74` e `8,1%`.
+- **Números no formato brasileiro:** `R$ 751.943,98` e `8,1%`.
 - **Do geral para o detalhe:** primeiro os 12 números principais em 3 linhas temáticas (operação,
   qualidade, financeiro), depois as abas por assunto e por fim a tabela com os registros.
 - **Setas de comparação:** verde quando melhorou, vermelho quando piorou, inclusive nos indicadores

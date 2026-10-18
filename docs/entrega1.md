@@ -39,7 +39,7 @@ marcas atendidas, defeitos mais comuns, preços e prazos.
 
 - Uma linha por OS, com 12 meses de dados (nov/2025 a out/2026), cerca de 2.500 OS.
 - Colunas: número da OS, datas de entrada, conclusão e entrega, cliente (código anônimo),
-  como o cliente conheceu a loja, marca, modelo, defeito, tipo de reparo, técnico, status
+  como o cliente conheceu a loja, marca (7 marcas), modelo (173 modelos), defeito, tipo de reparo, técnico, status
   (incluindo orçamento recusado), valor cobrado, custo da peça e se voltou na garantia.
 - Os clientes aparecem só como código (ex.: `CLI-0001`), sem nome, telefone ou CPF, para
   respeitar a LGPD.
