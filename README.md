@@ -332,7 +332,6 @@ página, em seções.
 | Máx. 5 fatias em pizza → barras ranqueadas | A pizza de origem virou barras ordenadas |
 | Números arredondados | `R$ 751,9 mil` nos cartões e gráficos, em vez de `R$ 751.943,98` |
 | Mostrar tendência, não só o retrato | Gráficos de tendência sempre com os últimos 12 meses; o período escolhido aparece sombreado |
-| Fonte e data de atualização visíveis | Subtítulo: "dados simulados com base em informações da empresa, até 17/10/2026" |
 
 ### Como o código funciona, bloco a bloco
 
@@ -477,7 +476,6 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
 - **Visual limpo de BI:** fundo branco, cartões com borda, sem botões de desenvolvedor.
 - **Privacidade (LGPD):** clientes aparecem só como código (`CLI-0001`), sem nome, telefone ou CPF.
-- **Transparência:** o subtítulo avisa que os dados são simulados e até quando vão.
 
 ---
 

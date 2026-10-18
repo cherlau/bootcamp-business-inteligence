@@ -106,8 +106,7 @@ col_logo, col_titulo = st.columns([1, 12], vertical_alignment="center")
 col_logo.image("assets/logo.jpg", width=90)
 with col_titulo:
     st.title("Opção Celular · Painel da Assistência")
-    st.caption(f"Opção Telefonia Celular · Bauru (SP) · dados simulados com base em informações da empresa, "
-               f"até {HOJE:%d/%m/%Y}")
+    st.caption("Opção Telefonia Celular · Bauru (SP)")
 
 PERIODOS = {"Últimos 30 dias": 30, "Últimos 3 meses": 91, "Últimos 6 meses": 182,
             "Últimos 12 meses": 365, "Personalizado": None}
