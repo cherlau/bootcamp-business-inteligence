@@ -146,6 +146,74 @@ with aba_geral:
     fig.update_layout(xaxis_title="Mês", yaxis_title="Aparelhos", legend_title="")
     st.plotly_chart(fig, width="stretch")
 
+    # ---------- Insights (calculados com os dados filtrados) ----------
+    st.subheader("💡 Insights")
+    insights = []
+    MINIMO_OS = 30  # com poucas OS as conclusões não fazem sentido
+
+    if qtd_entregues >= MINIMO_OS:
+        # 1. Serviço que mais traz receita
+        receita_por_tipo = entregues.groupby("tipo_reparo")["valor"].sum()
+        maior_tipo = receita_por_tipo.idxmax()
+        parte = receita_por_tipo.max() / receita
+        insights.append(
+            f"**{maior_tipo}** representa **{formatar_percentual(parte)}** da receita "
+            f"→ manter estoque de peças para os modelos mais comuns."
+        )
+
+        # 2. Defeito que mais volta na garantia, comparado com a média
+        retorno_defeito = entregues.groupby("defeito")["retorno_garantia"].apply(lambda s: (s == "Sim").mean())
+        pior_defeito = retorno_defeito.idxmax()
+        if taxa_retorno > 0:
+            vezes = retorno_defeito.max() / taxa_retorno
+            insights.append(
+                f"**{pior_defeito}** volta na garantia em **{formatar_percentual(retorno_defeito.max())}** "
+                f"dos casos, **{formatar_numero(vezes, 1)}×** a média "
+                f"→ revisar o procedimento ou reduzir o prazo de garantia desse serviço."
+            )
+
+        # 3. Técnico com mais retornos, comparado com os outros técnicos
+        com_tecnico = entregues[entregues["tecnico"] != "Não informado"]
+        retorno_tecnico = com_tecnico.groupby("tecnico")["retorno_garantia"].apply(lambda s: (s == "Sim").mean())
+        if len(retorno_tecnico) > 1:
+            pior_tecnico = retorno_tecnico.idxmax()
+            outros = com_tecnico[com_tecnico["tecnico"] != pior_tecnico]
+            taxa_outros = (outros["retorno_garantia"] == "Sim").mean()
+            if taxa_outros > 0:
+                insights.append(
+                    f"O técnico **{pior_tecnico}** tem **{formatar_percentual(retorno_tecnico.max())}** de retorno, "
+                    f"**{formatar_numero(retorno_tecnico.max() / taxa_outros, 1)}×** a taxa dos demais técnicos "
+                    f"→ acompanhamento e treinamento."
+                )
+
+    if recebidos >= MINIMO_OS:
+        # 4. Mês com mais entradas
+        MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
+                 "agosto", "setembro", "outubro", "novembro", "dezembro"]
+        por_mes = filtrado.groupby("mes").size()
+        mes_pico = por_mes.idxmax()
+        ano, mes = mes_pico.split("-")
+        insights.append(
+            f"**{MESES[int(mes) - 1].capitalize()}/{ano}** foi o mês com mais entradas "
+            f"(**{formatar_numero(por_mes.max())}** aparelhos, média de {formatar_numero(por_mes.mean())} por mês) "
+            f"→ reforçar a equipe nessa época."
+        )
+
+        # 5. Serviço mais demorado
+        tempo_tipo = filtrado.groupby("tipo_reparo")["dias_reparo"].mean()
+        if tempo_tipo.notna().any():
+            insights.append(
+                f"**{tempo_tipo.idxmax()}** é o serviço mais demorado (**{formatar_numero(tempo_tipo.max(), 1)} dias** "
+                f"em média, contra {formatar_numero(tempo_medio, 1)} no geral) "
+                f"→ avisar o cliente do prazo e manter peças em estoque."
+            )
+
+    if insights:
+        for frase in insights:
+            st.markdown("- " + frase)
+    else:
+        st.info(f"São necessárias pelo menos {MINIMO_OS} OS no filtro atual para gerar insights.")
+
 
 # ---------------- Aba: Serviços ----------------
 
