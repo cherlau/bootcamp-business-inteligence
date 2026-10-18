@@ -1,0 +1,8 @@
+__pycache__/
+.venv/
+.ipynb_checkpoints/
+
+# Arquivos usados apenas pelo Claude Code
+assistencia-bi/
+CLAUDE.md
+.claude/
