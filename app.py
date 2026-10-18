@@ -29,7 +29,6 @@ EM_ANDAMENTO = ["Em andamento", "Aguardando peça"]
 MINIMO_OS = 30       # com poucas OS as conclusões dos insights não fazem sentido
 MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
          "agosto", "setembro", "outubro", "novembro", "dezembro"]
-DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
 
 # Tamanho dos números (cartões principais grandes, secundários menores) e sem a barra do topo
 st.markdown("""
@@ -436,33 +435,6 @@ mostrar(barras(modelos, "modelo", "aparelhos",
                f"{', '.join(top3[:-1])} e {top3[-1]} lideram" if len(top3) > 1 else f"{top3[0]} lidera",
                "10 modelos que mais chegam para conserto · prioridade no estoque de peças",
                destaque=top3, texto="aparelhos", eixo_valor="Aparelhos"), c2)
-
-c1, c2 = st.columns(2)
-
-# Movimento por dia da semana
-por_dia = filtrado["dia_semana"].value_counts().reindex(DIAS_SEMANA, fill_value=0).reset_index()
-por_dia.columns = ["dia", "aparelhos"]
-dia_cheio = por_dia.loc[por_dia["aparelhos"].idxmax(), "dia"]
-mostrar(barras(por_dia, "dia", "aparelhos", f"{dia_cheio} é o dia mais cheio",
-               "Aparelhos recebidos por dia da semana · ajuda a montar a escala da equipe",
-               destaque=[dia_cheio], texto="aparelhos", horizontal=False, eixo_valor="Aparelhos"), c1)
-
-# Taxa de retorno por técnico
-com_tecnico = entregues[entregues["tecnico"] != "Não informado"]
-if len(com_tecnico) > 0:
-    ret_tec = com_tecnico.groupby("tecnico")["retorno_garantia"].apply(lambda s: (s == "Sim").mean() * 100)
-    ret_tec = ret_tec.round(1).reset_index(name="taxa")
-    ret_tec["texto"] = ret_tec["taxa"].apply(lambda t: formatar_numero(t, 1) + "%")
-    maior, menor = ret_tec["taxa"].max(), ret_tec["taxa"].min()
-    # Só destaca um técnico se a diferença for grande (50% a mais que o outro)
-    diferente = len(ret_tec) > 1 and menor > 0 and maior / menor >= 1.5
-    pior_tec = ret_tec.loc[ret_tec["taxa"].idxmax(), "tecnico"]
-    mostrar(barras(ret_tec, "tecnico", "taxa",
-                   f"{pior_tec} tem retorno acima dos demais" if diferente else "Os técnicos têm retorno parecido",
-                   "Taxa de retorno na garantia por técnico (%)", destaque=[pior_tec] if diferente else [],
-                   cor=VERMELHO, texto="texto", horizontal=False, eixo_valor="% de retorno",
-                   linha=atual["taxa_retorno"] * 100, linha_texto="média"), c2)
-
 
 # ---------------- Seção: Financeiro ----------------
 

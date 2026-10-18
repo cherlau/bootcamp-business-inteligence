@@ -61,7 +61,7 @@ flowchart LR
 | 1. Coleta (simulada) | `gerar_dados.py` | Parâmetros informados pelo dono + preços de mercado | `dados/ordens_servico_bruto.csv` (2.549 linhas, com erros) |
 | 2. Limpeza | `limpar_dados.py` | Base bruta | `dados/ordens_servico_limpo.csv` (2.519 linhas) + relatório |
 | 3. Exploração | `analise.ipynb` | Base limpa | Gráficos e 5 conclusões |
-| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores, 13 gráficos, previsão e insights |
+| 4. Visualização | `app.py` | Base limpa | Painel interativo com filtros, 10 indicadores, 11 gráficos, previsão e insights |
 
 ### Estrutura de pastas
 
@@ -318,7 +318,7 @@ página, em seções.
 │ Gráfico principal: recebidos × entregues    │ Insights                    │ ← tendência +
 │ por mês + previsão tracejada                │ (frases com recomendação)   │   insights
 ├────────────────────────────────────────────┴─────────────────────────────┤
-│ Serviços e qualidade (6 gráficos) · Financeiro (4) · Clientes (2)         │ ← nível 3: detalhe
+│ Serviços e qualidade (4 gráficos) · Financeiro (4) · Clientes (2)         │ ← nível 3: detalhe
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -400,7 +400,7 @@ Os títulos são **calculados**: se o filtro mudar, o título muda junto.
 | Seção | Gráficos | Pergunta que responde |
 |---|---|---|
 | **Topo** | Recebidos × entregues por mês + **previsão** tracejada · "Insights" | O movimento está crescendo? O que vem pela frente? |
-| **Serviços e qualidade** | Defeitos · Retorno por defeito (vermelho = acima da média) · Tempo por reparo (laranja = acima da meta) · **10 modelos mais consertados** · **Dia da semana** · Retorno por técnico | O que mais chega? O que volta? O que demora? Quais peças estocar? Que dia reforçar a equipe? |
+| **Serviços e qualidade** | Defeitos · Retorno por defeito (vermelho = acima da média) · Tempo por reparo (laranja = acima da meta) · **10 modelos mais consertados** | O que mais chega? O que volta? O que demora? Quais peças estocar? |
 | **Financeiro** | Receita por tipo · **Margem** por tipo (laranja = abaixo da média) · Receita e lucro por mês · **Orçamentos recusados** por tipo | O que dá mais dinheiro? E mais lucro? Onde perdemos orçamentos? |
 | **Clientes** | **Como os clientes novos conheceram a loja** · Clientes novos × que voltaram por mês | Qual canal de divulgação funciona? Os clientes voltam? |
 
@@ -419,7 +419,7 @@ O projeto cobre os **quatro tipos de análise**:
 
 | Tipo | O que responde | Onde aparece |
 |---|---|---|
-| **Descritiva** | *O que aconteceu?* | Cartões, volume por mês e dia da semana, defeitos, receita, clientes |
+| **Descritiva** | *O que aconteceu?* | Cartões, volume por mês, defeitos, modelos, receita, clientes |
 | **Diagnóstica** | *Por que aconteceu?* | Retorno por defeito/técnico vs. média; tempo vs. meta; margem por tipo; recusa por tipo |
 | **Preditiva** | *O que vai acontecer?* | Previsão de aparelhos recebidos nos próximos 3 meses |
 | **Prescritiva** | *O que fazer?* | Cada insight termina com uma recomendação (→) |
@@ -438,14 +438,9 @@ filtrar só Apple ou só setembro, as frases mudam.
 | 4 | Principal origem dos clientes novos | Indicação trouxe **35,3%** dos clientes novos | Investir no canal (ex.: desconto para quem indica) |
 | 5 | Mês de maior movimento na previsão | Janeiro/2027: **273 aparelhos** (média recente: 209) | Planejar estoque e equipe com antecedência |
 
-A comparação entre técnicos aparece no título do gráfico "Retorno por técnico". Hoje ele mostra
-"Os técnicos têm retorno parecido".
-
-Duas regras evitam conclusões erradas:
+Uma regra evita conclusões erradas:
 - **Mínimo de 30 OS:** com poucos dados, uma única OS vira "100% da receita". Abaixo desse
   número, os insights não aparecem.
-- **Técnicos só são apontados se a diferença for grande** (50% a mais que o outro). Diferenças
-  pequenas são tratadas como normais, para não culpar ninguém sem motivo.
 
 ### Principais descobertas (dados completos)
 
@@ -469,7 +464,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
   apoio, o gráfico principal com os insights ao lado e por fim as seções de detalhe.
 - **Nada escondido em abas:** tudo aparece rolando a página, em seções com título.
 - **Cartões limpos:** só título e número, sem informação extra.
-- **Títulos que dizem a conclusão** ("Sábado é o dia mais cheio") e subtítulo com a medida.
+- **Títulos que dizem a conclusão** ("Tela quebrada é 36,9% dos defeitos") e subtítulo com a medida.
 - **Cor só onde importa:** barras cinza, com destaque em azul, laranja ou vermelho; paleta segura para daltônicos.
 - **Linha da média ou da meta** nos gráficos, para ver na hora quem está acima.
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
@@ -488,7 +483,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 | Indicadores contados pela data certa | Recebidos pela data de entrada; entregues, receita e lucro pela data de entrega |
 | Previsão que o dono entenda | Método sazonal simples (mesmo mês do ano anterior × ritmo recente), fácil de explicar na apresentação |
 | Dados de clientes x privacidade | Clientes anônimos (código), sem nome, telefone ou CPF, mesmo o dono tendo esses dados |
-| Insights que não enganam com poucos dados | Mínimo de 30 OS e limite de diferença para apontar técnicos |
+| Insights que não enganam com poucos dados | Mínimo de 30 OS para gerar os insights |
 | Painel confuso, com informação escondida em abas | Redesenho com a skill dashboard-designer: layout em F, 5 KPIs principais, títulos como conclusão, cor só para destacar e seções sem abas |
 | Dados simulados com pessoas reais | Os técnicos reais têm a mesma chance de retorno: o painel não inventa diferença de desempenho |
 | Painel mostrando dados antigos | O `@st.cache_data` guarda os dados na memória; ao trocar o CSV, é preciso limpar o cache (menu ⋮ → *Clear cache*) ou reiniciar o painel |
