@@ -197,3 +197,35 @@ with aba_qualidade:
     col1, col2 = st.columns(2)
     col1.plotly_chart(grafico_retorno("defeito", "Taxa de retorno por defeito"), width="stretch")
     col2.plotly_chart(grafico_retorno("tecnico", "Taxa de retorno por técnico"), width="stretch")
+
+
+# ---------------- Aba: Financeiro ----------------
+
+with aba_financeiro:
+    col1, col2 = st.columns(2)
+
+    # Receita por tipo de reparo (OS entregues)
+    receita_tipo = entregues.groupby("tipo_reparo")["valor"].sum().sort_values().reset_index()
+    receita_tipo["texto"] = receita_tipo["valor"].apply(formatar_reais)
+    fig = px.bar(receita_tipo, x="valor", y="tipo_reparo", orientation="h", text="texto",
+                 title="Receita por tipo de reparo")
+    fig.update_layout(xaxis_title="Receita (R$)", yaxis_title="")
+    col1.plotly_chart(fig, width="stretch")
+
+    # Receita por mês (pelo mês de entrega)
+    receita_mes = entregues.groupby(entregues["data_entrega"].dt.strftime("%Y-%m"))["valor"].sum()
+    receita_mes = receita_mes.rename_axis("mes").reset_index()
+    fig = px.line(receita_mes, x="mes", y="valor", markers=True, title="Receita por mês")
+    fig.update_layout(xaxis_title="Mês", yaxis_title="Receita (R$)")
+    col2.plotly_chart(fig, width="stretch")
+
+
+# ---------------- Aba: Dados ----------------
+
+with aba_dados:
+    st.write(f"{formatar_numero(len(filtrado))} ordens de serviço no filtro atual.")
+    st.dataframe(filtrado, hide_index=True)
+
+    # Botão para baixar as OS filtradas em CSV
+    csv = filtrado.to_csv(sep=";", index=False).encode("utf-8-sig")
+    st.download_button("Baixar CSV", data=csv, file_name="ordens_servico_filtradas.csv", mime="text/csv")
