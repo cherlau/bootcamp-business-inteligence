@@ -101,7 +101,7 @@ def dividir(a, b):
 # ---------------- Cabeçalho e filtros (no topo) ----------------
 
 st.title("Painel da Assistência Técnica")
-st.caption(f"Opção Telefonia Celular · Bauru (SP) · dados até {HOJE:%d/%m/%Y}")
+st.caption(f"Opção Telefonia Celular · Bauru (SP) · dados simulados com base em informações da empresa, até {HOJE:%d/%m/%Y}")
 
 PERIODOS = {"Últimos 30 dias": 30, "Últimos 3 meses": 91, "Últimos 6 meses": 182,
             "Últimos 12 meses": 365, "Personalizado": None}
@@ -556,18 +556,3 @@ if len(por_mes) > 0:
                       legend={"orientation": "h", "y": -0.15})
     mostrar(titulo(fig, f"{formatar_percentual(atual['taxa_voltou'])} das OS são de clientes que voltaram",
                    "OS de clientes novos e de clientes que voltaram, por mês (últimos 12 meses)"), c2)
-
-
-# ---------------- Dados detalhados ----------------
-
-with st.expander(f"Ver as {formatar_numero(len(filtrado))} ordens de serviço do período (tabela e download)"):
-    st.dataframe(filtrado, hide_index=True, width="stretch")
-    csv = filtrado.to_csv(sep=";", index=False).encode("utf-8-sig")
-    st.download_button("Baixar CSV", data=csv, file_name="ordens_servico_filtradas.csv", mime="text/csv")
-
-
-# ---------------- Rodapé ----------------
-
-st.divider()
-st.caption(f"Fonte: ordens de serviço da Opção Telefonia Celular · **dados simulados** com base em informações "
-           f"da empresa · atualizado até {HOJE:%d/%m/%Y} · clientes identificados só por código (LGPD).")

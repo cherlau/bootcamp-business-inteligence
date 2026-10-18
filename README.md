@@ -320,8 +320,6 @@ página, em seções.
 │ ATENÇÃO AGORA: 🟡 aparelhos em conserto · 🔵 orçamentos recusados        │ ← ação
 ├──────────────────────────────────────────────────────────────────────────┤
 │ Serviços e qualidade (6 gráficos) · Financeiro (4) · Clientes (2)         │ ← nível 3: detalhe
-│ ▸ Ver as ordens de serviço (tabela e download)                            │
-│ Rodapé: fonte, dados simulados, data de atualização                       │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -335,7 +333,7 @@ página, em seções.
 | Máx. 5 fatias em pizza → barras ranqueadas | A pizza de origem virou barras ordenadas |
 | Números arredondados | `R$ 751,9 mil` nos cartões e gráficos, em vez de `R$ 751.943,98` |
 | Mostrar tendência, não só o retrato | Gráficos de tendência sempre com os últimos 12 meses; o período escolhido aparece sombreado |
-| Rodapé com fonte e atualização | "Fonte… dados simulados… atualizado até 17/10/2026" |
+| Fonte e data de atualização visíveis | Subtítulo: "dados simulados com base em informações da empresa, até 17/10/2026" |
 
 ### Como o código funciona, bloco a bloco
 
@@ -408,7 +406,6 @@ Os títulos são **calculados**: se o filtro mudar, o título muda junto.
 | **Serviços e qualidade** | Defeitos · Retorno por defeito (vermelho = acima da média) · Tempo por reparo (laranja = acima da meta) · **10 modelos mais consertados** · **Dia da semana** · Retorno por técnico | O que mais chega? O que volta? O que demora? Quais peças estocar? Que dia reforçar a equipe? |
 | **Financeiro** | Receita por tipo · **Margem** por tipo (laranja = abaixo da média) · Receita e lucro por mês · **Orçamentos recusados** por tipo | O que dá mais dinheiro? E mais lucro? Onde perdemos orçamentos? |
 | **Clientes** | **Como os clientes novos conheceram a loja** · Clientes novos × que voltaram por mês | Qual canal de divulgação funciona? Os clientes voltam? |
-| **Detalhe** | Tabela com as OS filtradas + botão **Baixar CSV** (em um expansor) | Quero ver ou exportar os registros |
 
 **8. Visual.** O tema claro fica no `.streamlit/config.toml`: fundo branco e azul `#0077BB` como cor
 principal. As cores ficam em constantes no topo do `app.py` (`AZUL`, `CINZA`, `LARANJA`,
@@ -480,10 +477,9 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 - **Linha da média ou da meta** nos gráficos, para ver na hora quem está acima.
 - **Explicação da previsão** logo abaixo do gráfico, em uma frase.
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
-- **Exportação para CSV** com acentos corretos ao abrir no Excel (`utf-8-sig`).
 - **Visual limpo de BI:** fundo branco, cartões com borda, sem botões de desenvolvedor.
 - **Privacidade (LGPD):** clientes aparecem só como código (`CLI-0001`), sem nome, telefone ou CPF.
-- **Transparência:** o rodapé mostra a fonte, avisa que os dados são simulados e a data de atualização.
+- **Transparência:** o subtítulo avisa que os dados são simulados e até quando vão.
 
 ---
 
