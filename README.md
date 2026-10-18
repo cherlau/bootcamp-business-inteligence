@@ -472,7 +472,6 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 - **Títulos que dizem a conclusão** ("Sábado é o dia mais cheio") e subtítulo com a medida.
 - **Cor só onde importa:** barras cinza, com destaque em azul, laranja ou vermelho; paleta segura para daltônicos.
 - **Linha da média ou da meta** nos gráficos, para ver na hora quem está acima.
-- **Explicação da previsão** logo abaixo do gráfico, em uma frase.
 - **Insights em frases com recomendação:** o dono não precisa interpretar o gráfico sozinho.
 - **Visual limpo de BI:** fundo branco, cartões com borda, sem botões de desenvolvedor.
 - **Privacidade (LGPD):** clientes aparecem só como código (`CLI-0001`), sem nome, telefone ou CPF.
@@ -487,7 +486,7 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 | Tornar a limpeza realista | A base é gerada com erros comuns de digitação, para a limpeza ter o que corrigir |
 | Datas em dois formatos na mesma coluna | Leitura em duas tentativas (`AAAA-MM-DD` e depois `DD/MM/AAAA`) |
 | Indicadores contados pela data certa | Recebidos pela data de entrada; entregues, receita e lucro pela data de entrega |
-| Previsão que o dono entenda | Método sazonal simples (mesmo mês do ano anterior × ritmo recente), explicado no próprio gráfico |
+| Previsão que o dono entenda | Método sazonal simples (mesmo mês do ano anterior × ritmo recente), fácil de explicar na apresentação |
 | Dados de clientes x privacidade | Clientes anônimos (código), sem nome, telefone ou CPF, mesmo o dono tendo esses dados |
 | Insights que não enganam com poucos dados | Mínimo de 30 OS e limite de diferença para apontar técnicos |
 | Painel confuso, com informação escondida em abas | Redesenho com a skill dashboard-designer: layout em F, 5 KPIs principais, títulos como conclusão, cor só para destacar e seções sem abas |

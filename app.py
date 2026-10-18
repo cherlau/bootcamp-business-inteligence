@@ -375,8 +375,6 @@ with col_grafico.container(border=True):
     else:
         titulo(fig, "Movimento mensal", "Aparelhos recebidos e entregues por mês")
     st.plotly_chart(fig, width="stretch")
-    st.caption(f"Previsão = mesmo mês do ano anterior × ritmo recente da loja ({formatar_numero(ritmo, 2)}). "
-               f"O mês atual fica fora porque ainda não terminou. Área azul = período escolhido.")
 
 with col_insights.container(border=True):
     st.subheader("Insights")
