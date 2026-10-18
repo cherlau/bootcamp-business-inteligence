@@ -112,7 +112,7 @@ PERIODOS = {"Últimos 30 dias": 30, "Últimos 3 meses": 91, "Últimos 6 meses": 
 
 with st.container(border=True):
     f1, f2, f3, f4 = st.columns([1.2, 1, 1, 1.6])  # Período · Técnico · Marca · Modelo
-    escolha = f1.selectbox("Período", list(PERIODOS), index=1)  # padrão: últimos 3 meses
+    escolha = f1.selectbox("Período", list(PERIODOS), index=0)  # padrão: últimos 30 dias
     if PERIODOS[escolha]:
         fim = HOJE
         inicio = max(HOJE - pd.Timedelta(days=PERIODOS[escolha] - 1), DATA_MIN)

@@ -308,10 +308,10 @@ página, em seções.
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ [logo] Opção Celular · Painel da Assistência                              │
-│ [Período ▼ Últimos 3 meses] [Técnico ▼] [Marca ▼] [Modelo ▼ buscar...]    │ ← filtros no topo
+│ [Período ▼ Últimos 30 dias] [Técnico ▼] [Marca ▼] [Modelo ▼ buscar...]    │ ← filtros no topo
 ├──────────────┬─────────────┬─────────────┬──────────────┬────────────────┤
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs
-│ R$ 192,3 mil │ R$ 117,7 mil│ 631         │ 2,5 dias     │ 8,0%           │   grandes
+│ R$ 55,7 mil  │ R$ 33,8 mil │ 199         │ 2,4 dias     │ 6,8%           │   grandes
 ├──────────────┴─────────────┴─────────────┴──────────────┴────────────────┤
 │ Em andamento · Conclusão · Orçamentos aprovados · Clientes que voltaram   │ ← nível 2: apoio
 ├────────────────────────────────────────────┬─────────────────────────────┤
@@ -325,7 +325,7 @@ página, em seções.
 | Princípio da skill | Como foi aplicado |
 |---|---|
 | 3 a 5 KPIs principais em destaque | 5 cartões grandes no topo; os demais ficam numa faixa menor logo abaixo |
-| Filtros no topo, padrão na visão mais comum | Filtros numa faixa no topo; padrão = **últimos 3 meses** |
+| Filtros no topo, padrão na visão mais comum | Filtros numa faixa no topo; padrão = **últimos 30 dias** (o dono acompanha o mês) |
 | Títulos como insight, não rótulo | "Danos por água volta 3,3× mais que a média" em vez de "Taxa de retorno por defeito" |
 | Cinza como padrão, cor só para destacar | Barras cinza; azul = destaque, laranja = atenção, vermelho = problema |
 | Paleta segura para daltônicos | `#0077BB`, `#EE7733`, `#009988`, `#CC3311` + cinza `#BBBBBB` |
@@ -341,7 +341,7 @@ antes). O decorador `@st.cache_data` guarda o resultado na memória: o Streamlit
 inteiro a cada clique, mas o arquivo só é lido uma vez.
 
 **2. Filtros no topo.**
-- **Período** (`st.selectbox`): últimos 30 dias, 3 meses (padrão), 6 meses, 12 meses ou personalizado
+- **Período** (`st.selectbox`): últimos 30 dias (padrão), 3 meses, 6 meses, 12 meses ou personalizado
   (abre um `st.date_input` com as datas).
 - **Técnico**, **Marca** e **Modelo** (`st.multiselect`): deixar vazio significa "todos".
 - A lista de **modelos depende da marca**: escolhendo Apple, só aparecem os 31 iPhones. Dá para
