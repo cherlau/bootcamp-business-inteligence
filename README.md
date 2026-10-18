@@ -23,7 +23,6 @@ estoque, equipe, preços, divulgação e qualidade dos reparos.
 - [5. Insights para a tomada de decisão](#5-insights-para-a-tomada-de-decisão)
 - [6. Usabilidade e clareza](#6-usabilidade-e-clareza)
 - [Desafios e decisões do projeto](#desafios-e-decisões-do-projeto)
-- [Limitações e próximos passos](#limitações-e-próximos-passos)
 - [Grupo](#grupo)
 
 ---
@@ -492,19 +491,6 @@ O público do painel é o **dono da loja**, que não é da área de dados. Por i
 | Painel confuso, com informação escondida em abas | Redesenho com a skill dashboard-designer: layout em F, 5 KPIs principais, títulos como conclusão, cor só para destacar e seções sem abas |
 | Dados simulados com pessoas reais | Os técnicos reais têm a mesma chance de retorno: o painel não inventa diferença de desempenho |
 | Painel mostrando dados antigos | O `@st.cache_data` guarda os dados na memória; ao trocar o CSV, é preciso reiniciar o painel (`Ctrl+C` e `streamlit run app.py` de novo) |
-
----
-
-## Limitações e próximos passos
-
-- **Dados simulados:** os números refletem as informações do dono, não o histórico real. O
-  próximo passo é carregar os dados reais da loja. O painel funciona com qualquer CSV no mesmo formato.
-- **Previsão com um ano de histórico:** o método sazonal precisa do mesmo mês no ano anterior.
-  Com mais anos de dados, dá para usar modelos mais robustos, como média de vários anos ou regressão.
-- **Custo da peça estimado:** usamos faixas de preço de mercado. Com as notas de compra reais, o
-  lucro por serviço fica exato.
-- **Custos fixos:** o lucro bruto não desconta aluguel, salários e contas. Com esses valores, dá
-  para calcular o lucro líquido e o ponto de equilíbrio.
 
 ---
 
