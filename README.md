@@ -308,7 +308,7 @@ página, em seções.
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │ [logo] Opção Celular · Painel da Assistência                              │
-│ [Período ▼ Últimos 3 meses] [Marca ▼] [Modelo ▼ buscar...] [Técnico ▼]    │ ← filtros no topo
+│ [Período ▼ Últimos 3 meses] [Técnico ▼] [Marca ▼] [Modelo ▼ buscar...]    │ ← filtros no topo
 ├──────────────┬─────────────┬─────────────┬──────────────┬────────────────┤
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs
 │ R$ 192,3 mil │ R$ 117,7 mil│ 631         │ 2,5 dias     │ 8,0%           │   grandes
@@ -343,7 +343,7 @@ inteiro a cada clique, mas o arquivo só é lido uma vez.
 **2. Filtros no topo.**
 - **Período** (`st.selectbox`): últimos 30 dias, 3 meses (padrão), 6 meses, 12 meses ou personalizado
   (abre um `st.date_input` com as datas).
-- **Marca**, **Modelo** e **Técnico** (`st.multiselect`): deixar vazio significa "todos".
+- **Técnico**, **Marca** e **Modelo** (`st.multiselect`): deixar vazio significa "todos".
 - A lista de **modelos depende da marca**: escolhendo Apple, só aparecem os 31 iPhones. Dá para
   digitar para buscar entre os 173 modelos. Se a marca mudar, os modelos que não pertencem a ela
   saem da seleção sozinhos.

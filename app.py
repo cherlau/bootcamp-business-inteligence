@@ -112,7 +112,7 @@ PERIODOS = {"Últimos 30 dias": 30, "Últimos 3 meses": 91, "Últimos 6 meses": 
             "Últimos 12 meses": 365, "Personalizado": None}
 
 with st.container(border=True):
-    f1, f2, f3, f4 = st.columns([1.2, 1, 1.6, 1])
+    f1, f2, f3, f4 = st.columns([1.2, 1, 1, 1.6])  # Período · Técnico · Marca · Modelo
     escolha = f1.selectbox("Período", list(PERIODOS), index=1)  # padrão: últimos 3 meses
     if PERIODOS[escolha]:
         fim = HOJE
@@ -123,12 +123,12 @@ with st.container(border=True):
         inicio, fim = (datas[0], datas[1]) if len(datas) == 2 else (datas[0], datas[0])
         inicio, fim = pd.Timestamp(inicio), pd.Timestamp(fim)
 
-    marcas = f2.multiselect("Marca", sorted(df["marca"].unique()), placeholder="Todas", select_all=False)
+    tecnicos = f2.multiselect("Técnico", sorted(df["tecnico"].unique()), placeholder="Todos", select_all=False)
+    marcas = f3.multiselect("Marca", sorted(df["marca"].unique()), placeholder="Todas", select_all=False)
     # A lista de modelos mostra só os modelos das marcas escolhidas
     opcoes_modelo = df[df["marca"].isin(marcas)] if marcas else df
-    modelos_escolhidos = f3.multiselect("Modelo", sorted(opcoes_modelo["modelo"].unique()),
+    modelos_escolhidos = f4.multiselect("Modelo", sorted(opcoes_modelo["modelo"].unique()),
                                         placeholder="Todos (digite para buscar)", select_all=False)
-    tecnicos = f4.multiselect("Técnico", sorted(df["tecnico"].unique()), placeholder="Todos", select_all=False)
 
 # Aplica marca, modelo e técnico (lista vazia = todos; por isso a opção "Select all" fica desligada)
 base = df.copy()
