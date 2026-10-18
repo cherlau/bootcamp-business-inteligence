@@ -77,3 +77,33 @@ def criar_colunas(df):
     df["dias_reparo"] = (df["data_conclusao"] - df["data_entrada"]).dt.days
     df["mes"] = df["data_entrada"].dt.strftime("%Y-%m")
     return df, len(df)
+
+
+# ---------------- Execução ----------------
+
+if __name__ == "__main__":
+    # Lê tudo como texto para tratar cada coluna do nosso jeito
+    df = pd.read_csv(ARQUIVO_BRUTO, sep=";", dtype=str)
+    total_antes = len(df)
+
+    # Aplica as funções em ordem e guarda quantas linhas cada uma corrigiu
+    df, duplicadas = remover_duplicadas(df)
+    df, datas = corrigir_datas(df)
+    df, marcas = padronizar_marcas(df)
+    df, valores = converter_valores(df)
+    df, tecnicos = preencher_tecnico(df)
+    df, _ = criar_colunas(df)
+
+    df.to_csv(ARQUIVO_LIMPO, sep=";", index=False)
+
+    # Relatório
+    print("=== Relatório de limpeza ===")
+    print(f"Linhas na base bruta:          {total_antes}")
+    print(f"Duplicadas removidas:          {duplicadas}")
+    print(f"Linhas com data DD/MM/AAAA:    {datas}")
+    print(f"Marcas padronizadas:           {marcas}")
+    print(f"Valores em texto convertidos:  {valores}")
+    print(f"Técnicos vazios preenchidos:   {tecnicos}")
+    print("Colunas criadas:               dias_reparo, mes")
+    print(f"Linhas na base limpa:          {len(df)}")
+    print(f"\nArquivo salvo em {ARQUIVO_LIMPO}")
