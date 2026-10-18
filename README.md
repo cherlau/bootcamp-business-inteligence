@@ -73,6 +73,7 @@ flowchart LR
 ├── analise.ipynb              # etapa 3: análise exploratória
 ├── app.py                     # etapa 4: painel Streamlit
 ├── .streamlit/config.toml     # tema visual do painel
+├── assets/logo.jpg            # logo da empresa (topo do painel e ícone da aba)
 ├── dados/
 │   ├── ordens_servico_bruto.csv
 │   └── ordens_servico_limpo.csv
@@ -306,7 +307,7 @@ página, em seções.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ Painel da Assistência Técnica · dados até 17/10/2026                      │
+│ [logo] Painel da Assistência Técnica · dados até 17/10/2026               │
 │ [Período ▼ Últimos 3 meses] [Marca ▼] [Modelo ▼ buscar...] [Técnico ▼]    │ ← filtros no topo
 ├──────────────┬─────────────┬─────────────┬──────────────┬────────────────┤
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs
