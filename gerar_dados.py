@@ -19,16 +19,62 @@ CHANCE_CANCELADO = 0.05   # cliente desistiu depois de aprovar
 # Segunda tem os aparelhos que quebraram no fim de semana; sábado o cliente tem mais tempo.
 PESO_DIA_SEMANA = {0: 1.15, 1: 0.90, 2: 0.90, 3: 1.00, 4: 1.00, 5: 1.05}
 
-# Marca: (chance, modelos do mais comum para o menos comum)
+# Marca: (chance, modelos do mais comum para o menos comum).
+# Modelos vendidos no Brasil entre 2017 e 2024: dos básicos mais populares aos premium.
 MARCAS = {
-    "Samsung": (0.40, ["Galaxy A14", "Galaxy A54", "Galaxy A34", "Galaxy A04", "Galaxy A24",
-                       "Galaxy M34", "Galaxy S23", "Galaxy S21 FE"]),
-    "Apple": (0.30, ["iPhone 11", "iPhone 13", "iPhone 12", "iPhone XR", "iPhone 14",
-                     "iPhone 15", "iPhone SE"]),
-    "Motorola": (0.20, ["Moto G54", "Moto G22", "Moto E13", "Moto G84", "Moto G32", "Edge 40"]),
-    "Xiaomi": (0.10, ["Redmi Note 12", "Redmi 12C", "Redmi Note 13", "Poco X5", "Redmi 13C"]),
+    "Samsung": (0.37, [
+        "Galaxy A14", "Galaxy A15", "Galaxy A54", "Galaxy A34", "Galaxy A12", "Galaxy A13",
+        "Galaxy A22", "Galaxy A32", "Galaxy A03s", "Galaxy A04s", "Galaxy A05s", "Galaxy A24",
+        "Galaxy A25", "Galaxy A35", "Galaxy A55", "Galaxy A23", "Galaxy A53", "Galaxy A52",
+        "Galaxy A51", "Galaxy A31", "Galaxy A21s", "Galaxy A11", "Galaxy A10s", "Galaxy A02s",
+        "Galaxy A01", "Galaxy A04", "Galaxy A04e", "Galaxy A05", "Galaxy A03", "Galaxy A20s",
+        "Galaxy A30s", "Galaxy A71", "Galaxy A72", "Galaxy M12", "Galaxy M13", "Galaxy M14",
+        "Galaxy M15", "Galaxy M23", "Galaxy M33", "Galaxy M34", "Galaxy M35", "Galaxy M54",
+        "Galaxy S20 FE", "Galaxy S21 FE", "Galaxy S23 FE", "Galaxy S21", "Galaxy S22",
+        "Galaxy S23", "Galaxy S24", "Galaxy S22 Ultra", "Galaxy S23 Ultra", "Galaxy S24 Ultra",
+        "Galaxy Note 10", "Galaxy Note 20", "Galaxy Z Flip4", "Galaxy Z Flip5", "Galaxy Z Fold5",
+    ]),
+    "Apple": (0.27, [
+        "iPhone 11", "iPhone 13", "iPhone 12", "iPhone XR", "iPhone 14", "iPhone 8",
+        "iPhone 7", "iPhone 8 Plus", "iPhone 7 Plus", "iPhone SE (2020)", "iPhone X",
+        "iPhone XS", "iPhone XS Max", "iPhone 11 Pro", "iPhone 11 Pro Max", "iPhone 12 Pro",
+        "iPhone 12 Pro Max", "iPhone 12 mini", "iPhone 13 Pro", "iPhone 13 Pro Max",
+        "iPhone 13 mini", "iPhone SE (2022)", "iPhone 14 Plus", "iPhone 14 Pro",
+        "iPhone 14 Pro Max", "iPhone 15", "iPhone 15 Plus", "iPhone 15 Pro", "iPhone 15 Pro Max",
+        "iPhone 16", "iPhone 16 Pro",
+    ]),
+    "Motorola": (0.19, [
+        "Moto G54", "Moto G22", "Moto E13", "Moto G84", "Moto G32", "Moto G52", "Moto G23",
+        "Moto G24", "Moto G34", "Moto G04", "Moto G14", "Moto G13", "Moto G53", "Moto G73",
+        "Moto G42", "Moto G62", "Moto G82", "Moto G60", "Moto G60s", "Moto G50", "Moto G30",
+        "Moto G20", "Moto G10", "Moto G9 Play", "Moto G8 Power", "Moto G8 Plus", "Moto E7",
+        "Moto E20", "Moto E22", "Moto E32", "Moto E40", "Edge 30", "Edge 40 Neo", "Edge 40",
+        "Edge 50", "Razr 40",
+    ]),
+    "Xiaomi": (0.11, [
+        "Redmi Note 12", "Redmi 12C", "Redmi Note 13", "Poco X5", "Redmi 13C", "Redmi Note 11",
+        "Redmi Note 10", "Redmi Note 9", "Redmi 9A", "Redmi 9C", "Redmi 10C", "Redmi 12",
+        "Redmi 13", "Redmi Note 12 Pro", "Redmi Note 13 Pro", "Redmi Note 8", "Poco X6",
+        "Poco X6 Pro", "Poco X3 Pro", "Poco M5", "Poco M6 Pro", "Poco F5", "Xiaomi 12",
+        "Xiaomi 13", "Xiaomi 13T", "Xiaomi 14",
+    ]),
+    "Realme": (0.03, [
+        "Realme C55", "Realme C35", "Realme C53", "Realme 11", "Realme C67", "Realme 10",
+        "Realme 9i", "Realme C33", "Realme 11 Pro", "Realme GT Master",
+    ]),
+    "LG": (0.02, [
+        "LG K41s", "LG K62", "LG K52", "LG K51s", "LG K22", "LG K50s", "LG K12 Max", "LG Velvet",
+    ]),
+    "Asus": (0.01, [
+        "Zenfone Max Pro M1", "Zenfone 5", "Zenfone Max Shot", "Zenfone 8", "Zenfone 9",
+    ]),
 }
 AUMENTO_APPLE = 1.5  # Apple custa ~50% a mais
+
+# Modelos premium (telas e placas mais caras): conserto ~40% mais caro
+PALAVRAS_PREMIUM = ["Pro", "Ultra", "Galaxy S", "Galaxy Note", "Galaxy Z",
+                    "Edge", "Razr", "Xiaomi 1", "Poco F", "GT", "Velvet", "Zenfone 8", "Zenfone 9"]
+AUMENTO_PREMIUM = 1.4
 
 # Defeito: tipo de reparo, chance, preço mín/máx, dias mín/máx, chance de retorno
 DEFEITOS = {
@@ -108,10 +154,15 @@ marcas = np.random.choice(nomes_marcas, size=n, p=chances_marcas)
 
 
 def sortear_modelo(marca):
-    """Sorteia um modelo: o primeiro da lista é o mais comum, o último o menos comum."""
+    """Sorteia um modelo: o primeiro da lista é o mais comum, o último o menos comum.
+    Peso = 1 / posição^0,8 → poucos modelos muito comuns e muitos modelos raros (como na vida real)."""
     lista = MARCAS[marca][1]
-    pesos = np.arange(len(lista), 0, -1)  # ex.: 8, 7, 6, ..., 1
+    pesos = 1 / np.arange(1, len(lista) + 1) ** 0.8
     return np.random.choice(lista, p=pesos / pesos.sum())
+
+
+def eh_premium(modelo):
+    return any(palavra in modelo for palavra in PALAVRAS_PREMIUM)
 
 
 modelos = [sortear_modelo(m) for m in marcas]
@@ -144,10 +195,12 @@ for i in range(n):
     tecnico = tecnicos[i]
     tipo, _, preco_min, preco_max, dias_min, dias_max, chance_retorno = DEFEITOS[defeito]
 
-    # Preço (Apple mais caro) e custo da peça
+    # Preço (Apple e modelos premium mais caros) e custo da peça
     valor = np.random.uniform(preco_min, preco_max)
     if marca == "Apple":
         valor = valor * AUMENTO_APPLE
+    if eh_premium(modelos[i]):
+        valor = valor * AUMENTO_PREMIUM
     valor = round(valor, 2)
     custo = round(valor * np.random.uniform(*CUSTO_PECA[tipo]), 2)
 
@@ -228,6 +281,9 @@ MARCAS_ERRADAS = {
     "Apple": ["apple", "iPhone"],
     "Motorola": ["moto"],
     "Xiaomi": ["XIAOMI"],
+    "Realme": ["realme", "REALME"],
+    "LG": ["lg", "Lg"],
+    "Asus": ["asus", "ASUS"],
 }
 
 # 1. Algumas datas no formato DD/MM/AAAA
@@ -266,6 +322,7 @@ df.to_csv("dados/ordens_servico_bruto.csv", sep=";", index=False)
 
 print("Total de linhas:", len(df))
 print("Clientes diferentes:", df["cliente_id"].nunique())
+print("Modelos diferentes:", df["modelo"].nunique())
 print("\nOS por status:")
 print(df["status"].value_counts())
 print("\nOS por defeito:")
