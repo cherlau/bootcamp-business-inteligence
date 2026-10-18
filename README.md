@@ -307,7 +307,7 @@ página, em seções.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [logo] Painel da Assistência Técnica · dados até 17/10/2026               │
+│ [logo] Opção Celular - Dashboard de Assistência Técnica                   │
 │ [Período ▼ Últimos 3 meses] [Marca ▼] [Modelo ▼ buscar...] [Técnico ▼]    │ ← filtros no topo
 ├──────────────┬─────────────┬─────────────┬──────────────┬────────────────┤
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs

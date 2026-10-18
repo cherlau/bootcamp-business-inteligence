@@ -105,7 +105,7 @@ def dividir(a, b):
 col_logo, col_titulo = st.columns([1, 12], vertical_alignment="center")
 col_logo.image("assets/logo.jpg", width=90)
 with col_titulo:
-    st.title("Painel da Assistência Técnica")
+    st.title("Opção Celular - Dashboard de Assistência Técnica")
     st.caption(f"Opção Telefonia Celular · Bauru (SP) · dados simulados com base em informações da empresa, "
                f"até {HOJE:%d/%m/%Y}")
 
