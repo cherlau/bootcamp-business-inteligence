@@ -34,8 +34,7 @@ DEFEITOS = {
     "Software travando": ("Reinstalação de software", 0.10, 60, 140, 0, 1, 0.10),
 }
 
-TECNICOS = ["Carlos", "Juliana", "Rafael", "Marcos"]
-TECNICO_NOVO = "Marcos"  # tem o dobro de chance de retorno
+TECNICOS = ["Felipe", "Carlos Eduardo"]  # Felipe é o dono e também conserta
 
 # Reparos que às vezes ficam esperando peça
 REPAROS_COM_PECA = ["Troca de tela", "Reparo de placa"]
@@ -116,8 +115,6 @@ for i in range(n):
     # Retorno na garantia só para OS entregues
     retorno = ""
     if status == "Entregue":
-        if tecnico == TECNICO_NOVO:
-            chance_retorno = chance_retorno * 2
         retorno = "Sim" if np.random.rand() < chance_retorno else "Não"
 
     linhas.append({

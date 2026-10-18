@@ -179,11 +179,18 @@ with aba_geral:
             pior_tecnico = retorno_tecnico.idxmax()
             outros = com_tecnico[com_tecnico["tecnico"] != pior_tecnico]
             taxa_outros = (outros["retorno_garantia"] == "Sim").mean()
-            if taxa_outros > 0:
+            # Só aponta um técnico se a diferença for grande (50% a mais que os outros)
+            if taxa_outros > 0 and retorno_tecnico.max() / taxa_outros >= 1.5:
                 insights.append(
                     f"O técnico **{pior_tecnico}** tem **{formatar_percentual(retorno_tecnico.max())}** de retorno, "
                     f"**{formatar_numero(retorno_tecnico.max() / taxa_outros, 1)}×** a taxa dos demais técnicos "
-                    f"→ acompanhamento e treinamento."
+                    f"→ revisar juntos os reparos que voltaram."
+                )
+            else:
+                taxas = ", ".join(f"{t}: {formatar_percentual(v)}" for t, v in retorno_tecnico.items())
+                insights.append(
+                    f"Os técnicos têm taxas de retorno parecidas ({taxas}) "
+                    f"→ os retornos dependem mais do tipo de defeito do que de quem conserta."
                 )
 
     if recebidos >= MINIMO_OS:
