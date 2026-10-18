@@ -278,39 +278,48 @@ historico, previsao, ritmo = prever_demanda(base)
 
 
 # ---------------- Insights (calculados com os dados filtrados) ----------------
+# Um insight para cada gráfico do painel, na mesma ordem da página.
 
 insights = []
-if atual["qtd_entregues"] >= MINIMO_OS:
-    # Serviço que mais traz receita e a margem dele
-    por_tipo = entregues.groupby("tipo_reparo")[["valor", "lucro"]].sum()
-    maior_tipo = por_tipo["valor"].idxmax()
-    parte = por_tipo.loc[maior_tipo, "valor"] / atual["receita"]
-    margem_tipo = por_tipo.loc[maior_tipo, "lucro"] / por_tipo.loc[maior_tipo, "valor"]
+
+# 1. Gráfico principal: mês de maior movimento na previsão (só com volume suficiente)
+if len(previsao) > 0 and historico.tail(3).sum() >= MINIMO_OS:
     insights.append(
-        f"**{maior_tipo}** traz **{formatar_percentual(parte)}** da receita, mas com margem de "
-        f"{formatar_percentual(margem_tipo)} → negociar o preço da peça e estocar os modelos mais comuns."
+        f"Previsão de **{formatar_numero(previsao.max())} aparelhos em {nome_mes(previsao.idxmax())}** "
+        f"(média recente: {formatar_numero(historico.tail(3).mean())}/mês) → planejar estoque e equipe."
     )
 
-    # Defeito que mais volta na garantia
-    retorno_defeito = entregues.groupby("defeito")["retorno_garantia"].apply(lambda s: (s == "Sim").mean())
-    if atual["taxa_retorno"] > 0:
+if atual["recebidos"] >= MINIMO_OS:
+    # 2. Defeitos e modelos: o que mais chega e de quais aparelhos
+    top_defeito = filtrado["defeito"].value_counts(normalize=True)
+    top_modelos = list(filtrado["modelo"].value_counts().head(3).index)
+    lista_modelos = top_modelos[0] if len(top_modelos) == 1 else f"{', '.join(top_modelos[:-1])} e {top_modelos[-1]}"
+    insights.append(
+        f"**{top_defeito.index[0]}** é **{formatar_percentual(top_defeito.iloc[0])}** dos defeitos; "
+        f"os modelos que mais chegam: {lista_modelos} → manter peças desses modelos em estoque."
+    )
+
+if atual["qtd_entregues"] >= MINIMO_OS:
+    # 3. Receita e margem: o serviço que mais fatura e o de menor margem
+    por_tipo = entregues.groupby("tipo_reparo")[["valor", "lucro"]].sum()
+    por_tipo["margem"] = por_tipo["lucro"] / por_tipo["valor"]
+    maior_tipo = por_tipo["valor"].idxmax()
+    menor_margem = por_tipo["margem"].idxmin()
+    if maior_tipo == menor_margem:
         insights.append(
-            f"**{retorno_defeito.idxmax()}** volta na garantia em **{formatar_percentual(retorno_defeito.max())}** "
-            f"dos casos ({formatar_numero(retorno_defeito.max() / atual['taxa_retorno'], 1)}× a média) "
-            f"→ revisar o procedimento ou o prazo de garantia."
+            f"**{maior_tipo}** traz **{formatar_percentual(por_tipo.loc[maior_tipo, 'valor'] / atual['receita'])}** "
+            f"da receita, mas tem a menor margem ({formatar_percentual(por_tipo.loc[maior_tipo, 'margem'])}, "
+            f"contra {formatar_percentual(atual['margem'])} na média) → negociar o preço da peça com fornecedores."
+        )
+    else:
+        insights.append(
+            f"**{maior_tipo}** traz **{formatar_percentual(por_tipo.loc[maior_tipo, 'valor'] / atual['receita'])}** "
+            f"da receita; **{menor_margem}** tem a menor margem "
+            f"({formatar_percentual(por_tipo.loc[menor_margem, 'margem'])}) → rever o preço desse serviço."
         )
 
 if atual["recebidos"] >= MINIMO_OS:
-    # Serviço com mais orçamentos recusados
-    recusa = filtrado.groupby("tipo_reparo")["status"].apply(lambda s: (s == "Orçamento recusado").mean())
-    valor_recusado = filtrado[filtrado["status"] == "Orçamento recusado"]["valor"].sum()
-    if recusa.max() > 0:
-        insights.append(
-            f"**{recusa.idxmax()}** tem **{formatar_percentual(recusa.max())}** dos orçamentos recusados "
-            f"({formatar_reais_curto(valor_recusado)} não fecharam no total) → revisar preço ou oferecer parcelamento."
-        )
-
-    # Principal origem dos clientes novos
+    # 4. Clientes novos: principal canal
     novos = filtrado[~filtrado["cliente_voltou"]]
     if len(novos) > 0:
         origem = novos["origem_cliente"].value_counts(normalize=True)
@@ -319,11 +328,10 @@ if atual["recebidos"] >= MINIMO_OS:
             f"→ investir nesse canal (ex.: desconto para quem indica)."
         )
 
-# Previsão: mês de maior movimento nos próximos meses (só com volume suficiente)
-if len(previsao) > 0 and historico.tail(3).sum() >= MINIMO_OS:
+    # 5. Clientes que voltaram
     insights.append(
-        f"Previsão de **{formatar_numero(previsao.max())} aparelhos em {nome_mes(previsao.idxmax())}** "
-        f"(média recente: {formatar_numero(historico.tail(3).mean())}/mês) → planejar estoque e equipe."
+        f"**{formatar_percentual(atual['taxa_voltou'])}** das OS são de clientes que já tinham vindo antes "
+        f"→ manter contato pós-conserto (ex.: mensagem perto do fim da garantia)."
     )
 
 
