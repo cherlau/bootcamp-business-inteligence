@@ -14,7 +14,8 @@ Disciplina: Business Intelligence (Desenvolvimento de Sistemas)
 | **Nome** | Opção Telefonia Celular |
 | **O que faz** | Assistência técnica (conserto) e venda de celulares |
 | **Onde fica** | Bauru (SP) |
-| **Responsável** | Felipe Campos, dono da empresa, que também trabalha como técnico nos consertos |
+| **Equipe técnica** | 2 técnicos: Felipe (o dono) e Carlos Eduardo |
+| **Responsável** | Felipe Campos Guimarães, dono da empresa, que também trabalha como técnico nos consertos |
 
 ## 3. O problema
 
