@@ -123,14 +123,14 @@ with st.container(border=True):
         inicio, fim = (datas[0], datas[1]) if len(datas) == 2 else (datas[0], datas[0])
         inicio, fim = pd.Timestamp(inicio), pd.Timestamp(fim)
 
-    marcas = f2.multiselect("Marca", sorted(df["marca"].unique()), placeholder="Todas")
+    marcas = f2.multiselect("Marca", sorted(df["marca"].unique()), placeholder="Todas", select_all=False)
     # A lista de modelos mostra só os modelos das marcas escolhidas
     opcoes_modelo = df[df["marca"].isin(marcas)] if marcas else df
     modelos_escolhidos = f3.multiselect("Modelo", sorted(opcoes_modelo["modelo"].unique()),
-                                        placeholder="Todos (digite para buscar)")
-    tecnicos = f4.multiselect("Técnico", sorted(df["tecnico"].unique()), placeholder="Todos")
+                                        placeholder="Todos (digite para buscar)", select_all=False)
+    tecnicos = f4.multiselect("Técnico", sorted(df["tecnico"].unique()), placeholder="Todos", select_all=False)
 
-# Aplica marca, modelo e técnico (lista vazia = todos)
+# Aplica marca, modelo e técnico (lista vazia = todos; por isso a opção "Select all" fica desligada)
 base = df.copy()
 if marcas:
     base = base[base["marca"].isin(marcas)]
