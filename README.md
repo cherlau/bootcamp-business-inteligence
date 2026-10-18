@@ -307,7 +307,7 @@ página, em seções.
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│ [logo] Opção Celular - Dashboard de Assistência Técnica                   │
+│ [logo] Opção Celular · Painel da Assistência                              │
 │ [Período ▼ Últimos 3 meses] [Marca ▼] [Modelo ▼ buscar...] [Técnico ▼]    │ ← filtros no topo
 ├──────────────┬─────────────┬─────────────┬──────────────┬────────────────┤
 │ Receita      │ Lucro bruto │ Recebidos   │ Tempo médio  │ Taxa retorno   │ ← nível 1: 5 KPIs
