@@ -314,8 +314,8 @@ página, em seções.
 ├──────────────┴─────────────┴─────────────┴──────────────┴────────────────┤
 │ Em andamento · Conclusão · Orçamentos aprovados · Clientes que voltaram   │ ← nível 2: apoio
 ├────────────────────────────────────────────┬─────────────────────────────┤
-│ Gráfico principal: recebidos × entregues    │ O que os dados dizem        │ ← tendência +
-│ por mês + previsão tracejada                │ (insights com recomendação) │   insights
+│ Gráfico principal: recebidos × entregues    │ Insights                    │ ← tendência +
+│ por mês + previsão tracejada                │ (frases com recomendação)   │   insights
 ├────────────────────────────────────────────┴─────────────────────────────┤
 │ ATENÇÃO AGORA: 🟡 aparelhos em conserto · 🔵 orçamentos recusados        │ ← ação
 ├──────────────────────────────────────────────────────────────────────────┤
@@ -403,7 +403,7 @@ Os títulos são **calculados**: se o filtro mudar, o título muda junto.
 
 | Seção | Gráficos | Pergunta que responde |
 |---|---|---|
-| **Topo** | Recebidos × entregues por mês + **previsão** tracejada · "O que os dados dizem" | O movimento está crescendo? O que vem pela frente? |
+| **Topo** | Recebidos × entregues por mês + **previsão** tracejada · "Insights" | O movimento está crescendo? O que vem pela frente? |
 | **Atenção agora** | Alertas de aparelhos em conserto (e quantos aguardam peça) e de orçamentos recusados | O que precisa de atenção hoje? |
 | **Serviços e qualidade** | Defeitos · Retorno por defeito (vermelho = acima da média) · Tempo por reparo (laranja = acima da meta) · **10 modelos mais consertados** · **Dia da semana** · Retorno por técnico | O que mais chega? O que volta? O que demora? Quais peças estocar? Que dia reforçar a equipe? |
 | **Financeiro** | Receita por tipo · **Margem** por tipo (laranja = abaixo da média) · Receita e lucro por mês · **Orçamentos recusados** por tipo | O que dá mais dinheiro? E mais lucro? Onde perdemos orçamentos? |
@@ -432,7 +432,7 @@ O projeto cobre os **quatro tipos de análise**:
 
 ### Insights automáticos
 
-Ao lado do gráfico principal, no quadro **"O que os dados dizem"**, o painel escreve até 5 frases
+Ao lado do gráfico principal, no quadro **"Insights"**, o painel escreve até 5 frases
 **calculadas na hora** a partir dos dados filtrados. Nenhum número fica fixo no texto: se o dono
 filtrar só Apple ou só setembro, as frases mudam.
 

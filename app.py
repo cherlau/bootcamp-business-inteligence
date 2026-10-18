@@ -30,11 +30,12 @@ MESES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho",
          "agosto", "setembro", "outubro", "novembro", "dezembro"]
 DIAS_SEMANA = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado"]
 
-# Tamanho dos números: cartões principais grandes, secundários menores
+# Tamanho dos números (cartões principais grandes, secundários menores) e sem a barra do topo
 st.markdown("""
 <style>
 .st-key-principais [data-testid="stMetricValue"] { font-size: 2.1rem; }
 .st-key-secundarios [data-testid="stMetricValue"] { font-size: 1.35rem; }
+[data-testid="stAppHeader"] { display: none; }  /* esconde a barra do topo do Streamlit */
 </style>
 """, unsafe_allow_html=True)
 
@@ -372,7 +373,7 @@ with col_grafico.container(border=True):
                f"O mês atual fica fora porque ainda não terminou. Área azul = período escolhido.")
 
 with col_insights.container(border=True):
-    st.subheader("O que os dados dizem")
+    st.subheader("Insights")
     if insights:
         for frase in insights:
             st.markdown("- " + frase)
